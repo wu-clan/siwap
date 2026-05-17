@@ -11,7 +11,7 @@ echo "==> go tests"
 go test ./...
 
 echo "==> Wails v3 build smoke"
-"$WAILS3" task build
+"$WAILS3" task build VERSION=dev
 
 if [[ "$(uname -s)" == "Darwin" ]]; then
   IDENTITY="${SIWAP_DEV_CODESIGN_IDENTITY:-Siwap Local Development}"

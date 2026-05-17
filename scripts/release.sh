@@ -10,7 +10,7 @@ cd "$ROOT"
 WAILS3="${WAILS3:-$(go env GOPATH)/bin/wails3}"
 
 echo "==> building Siwap $VERSION"
-"$WAILS3" task build
+"$WAILS3" task build VERSION="$VERSION"
 go test ./...
 
 APP="bin/siwap"
