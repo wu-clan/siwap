@@ -1,0 +1,43 @@
+version: '3'
+
+includes:
+  common: ./build/Taskfile.yml
+  windows: ./build/windows/Taskfile.yml
+  darwin: ./build/darwin/Taskfile.yml
+  linux: ./build/linux/Taskfile.yml
+
+vars:
+  APP_NAME: "siwap"
+  BIN_DIR: "bin"
+  VERSION: '{{.VERSION | default "dev"}}'
+  VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
+  WAILS3:
+    sh: 'command -v wails3 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)"'
+
+tasks:
+  build:
+    summary: Builds the application
+    cmds:
+      - task: "{{OS}}:build"
+
+  package:
+    summary: Packages a production build of the application
+    cmds:
+      - task: "{{OS}}:package"
+
+  run:
+    summary: Runs the application
+    cmds:
+      - task: "{{OS}}:run"
+
+  dev:
+    summary: Runs the application in development mode
+    cmds:
+      - '{{.WAILS3}} dev -config ./build/config.yml -port {{.VITE_PORT}}'
+
+  test:
+    summary: Runs Go tests and frontend build
+    deps:
+      - task: common:build:frontend
+    cmds:
+      - go test ./...

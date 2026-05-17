@@ -1,0 +1,118 @@
+name: release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: macos-latest
+            goos: darwin
+            goarch: arm64
+            artifact: siwap-darwin-arm64.zip
+          - os: macos-latest
+            goos: darwin
+            goarch: amd64
+            artifact: siwap-darwin-amd64.zip
+          - os: windows-latest
+            goos: windows
+            goarch: amd64
+            artifact: siwap-windows-amd64.zip
+          - os: ubuntu-latest
+            goos: linux
+            goarch: amd64
+            artifact: siwap-linux-amd64.tar.gz
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.23'
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install Wails CLI
+        run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.91
+
+      - name: Install frontend dependencies
+        run: pnpm install
+        working-directory: frontend
+
+      - name: Build (macOS)
+        if: matrix.goos == 'darwin'
+        env:
+          GOOS: darwin
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '1'
+          CGO_CFLAGS: '-mmacosx-version-min=12.0'
+          CGO_LDFLAGS: '-mmacosx-version-min=12.0'
+        run: wails3 task darwin:package ARCH=${{ matrix.goarch }} VERSION=${{ github.ref_name }}
+
+      - name: Build (Windows)
+        if: matrix.goos == 'windows'
+        env:
+          GOOS: windows
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: wails3 task windows:build ARCH=${{ matrix.goarch }} VERSION=${{ github.ref_name }}
+
+      - name: Build (Linux)
+        if: matrix.goos == 'linux'
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '1'
+        run: wails3 task linux:build ARCH=${{ matrix.goarch }} VERSION=${{ github.ref_name }}
+
+      - name: Package (macOS)
+        if: matrix.goos == 'darwin'
+        run: |
+          cd bin
+          zip -r ../${{ matrix.artifact }} siwap.app
+
+      - name: Package (Windows)
+        if: matrix.goos == 'windows'
+        shell: pwsh
+        run: Compress-Archive -Path bin/siwap.exe -DestinationPath ${{ matrix.artifact }}
+
+      - name: Package (Linux)
+        if: matrix.goos == 'linux'
+        run: tar -czf ${{ matrix.artifact }} -C bin siwap
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          files: artifacts/*

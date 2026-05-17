@@ -1,0 +1,13 @@
+[Desktop Entry]
+Version=1.0
+Name=Siwap
+Comment=Project-based AI assistant session launcher
+# The Exec line includes %u to pass the URL to the application
+Exec=/usr/local/bin/siwap %u
+Terminal=false
+Type=Application
+Icon=siwap
+Categories=Utility;
+StartupWMClass=siwap
+
+ 
