@@ -28,7 +28,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev libx11-dev xvfb
 
       - name: Install Wails CLI
         run: go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-alpha.91
@@ -40,7 +40,11 @@ jobs:
       - name: Frontend build
         run: pnpm build
         working-directory: frontend
+      - name: Go tests (Linux)
+        if: runner.os == 'Linux'
+        run: xvfb-run go test ./...
       - name: Go tests
+        if: runner.os != 'Linux'
         run: go test ./...
       - name: Go build
         run: go build ./...
