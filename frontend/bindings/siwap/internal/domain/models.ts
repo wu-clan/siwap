@@ -80,6 +80,7 @@ export class AppSummary {
 }
 
 export class Bootstrap {
+    "version": string;
     "summary": AppSummary;
     "configPath": string;
     "preferences": Preferences;
@@ -91,6 +92,9 @@ export class Bootstrap {
 
     /** Creates a new Bootstrap instance. */
     constructor($$source: Partial<Bootstrap> = {}) {
+        if (!("version" in $$source)) {
+            this["version"] = "";
+        }
         if (!("summary" in $$source)) {
             this["summary"] = (new AppSummary());
         }
@@ -123,34 +127,34 @@ export class Bootstrap {
      * Creates a new Bootstrap instance from a string or object.
      */
     static createFrom($$source: any = {}): Bootstrap {
-        const $$createField0_0 = $$createType1;
-        const $$createField2_0 = $$createType2;
-        const $$createField3_0 = $$createType4;
-        const $$createField4_0 = $$createType6;
-        const $$createField5_0 = $$createType8;
-        const $$createField6_0 = $$createType10;
-        const $$createField7_0 = $$createType12;
+        const $$createField1_0 = $$createType1;
+        const $$createField3_0 = $$createType2;
+        const $$createField4_0 = $$createType4;
+        const $$createField5_0 = $$createType6;
+        const $$createField6_0 = $$createType8;
+        const $$createField7_0 = $$createType10;
+        const $$createField8_0 = $$createType12;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("summary" in $$parsedSource) {
-            $$parsedSource["summary"] = $$createField0_0($$parsedSource["summary"]);
+            $$parsedSource["summary"] = $$createField1_0($$parsedSource["summary"]);
         }
         if ("preferences" in $$parsedSource) {
-            $$parsedSource["preferences"] = $$createField2_0($$parsedSource["preferences"]);
+            $$parsedSource["preferences"] = $$createField3_0($$parsedSource["preferences"]);
         }
         if ("harnesses" in $$parsedSource) {
-            $$parsedSource["harnesses"] = $$createField3_0($$parsedSource["harnesses"]);
+            $$parsedSource["harnesses"] = $$createField4_0($$parsedSource["harnesses"]);
         }
         if ("projects" in $$parsedSource) {
-            $$parsedSource["projects"] = $$createField4_0($$parsedSource["projects"]);
+            $$parsedSource["projects"] = $$createField5_0($$parsedSource["projects"]);
         }
         if ("terminalProfiles" in $$parsedSource) {
-            $$parsedSource["terminalProfiles"] = $$createField5_0($$parsedSource["terminalProfiles"]);
+            $$parsedSource["terminalProfiles"] = $$createField6_0($$parsedSource["terminalProfiles"]);
         }
         if ("adapters" in $$parsedSource) {
-            $$parsedSource["adapters"] = $$createField6_0($$parsedSource["adapters"]);
+            $$parsedSource["adapters"] = $$createField7_0($$parsedSource["adapters"]);
         }
         if ("sessions" in $$parsedSource) {
-            $$parsedSource["sessions"] = $$createField7_0($$parsedSource["sessions"]);
+            $$parsedSource["sessions"] = $$createField8_0($$parsedSource["sessions"]);
         }
         return new Bootstrap($$parsedSource as Partial<Bootstrap>);
     }
