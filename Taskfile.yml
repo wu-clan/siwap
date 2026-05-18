@@ -12,7 +12,7 @@ vars:
   VERSION: '{{.VERSION | default "dev"}}'
   VITE_PORT: '{{.WAILS_VITE_PORT | default 9245}}'
   WAILS3:
-    sh: 'command -v wails3 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)"'
+    sh: 'if [ -n "${WAILS3:-}" ]; then printf "%s" "$WAILS3"; else command -v wails3 2>/dev/null || command -v wails3.exe 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)"; fi'
 
 tasks:
   build:

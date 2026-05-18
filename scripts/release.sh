@@ -7,11 +7,18 @@ if [[ -z "$VERSION" ]]; then
 fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-WAILS3="${WAILS3:-$(command -v wails3 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)")}"
+WAILS3="${WAILS3:-$(command -v wails3 2>/dev/null || command -v wails3.exe 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)")}"
 ARCH="${2:-${ARCH:-$(go env GOARCH)}}"
 
+echo "==> building frontend assets"
+"$WAILS3" task common:build:frontend
+
 echo "==> testing Siwap $VERSION"
-go test ./...
+if [[ "$(go env GOOS)" == "linux" ]] && command -v xvfb-run >/dev/null 2>&1; then
+  xvfb-run -a go test ./...
+else
+  go test ./...
+fi
 
 echo "==> packaging Siwap $VERSION for $(go env GOOS)/$ARCH"
 "$WAILS3" task package VERSION="$VERSION" ARCH="$ARCH"

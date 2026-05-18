@@ -11,6 +11,7 @@ permissions:
 jobs:
   build:
     strategy:
+      fail-fast: false
       matrix:
         include:
           - os: macos-latest
@@ -51,7 +52,7 @@ jobs:
         if: matrix.goos == 'linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
+          sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev xvfb
 
       - name: Install Windows packaging dependencies
         if: matrix.goos == 'windows'
@@ -69,6 +70,7 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           ARCH: ${{ matrix.goarch }}
+          WAILS3: wails3
           CGO_ENABLED: ${{ matrix.goos == 'windows' && '0' || '1' }}
           CGO_CFLAGS: ${{ matrix.goos == 'darwin' && '-mmacosx-version-min=12.0' || '' }}
           CGO_LDFLAGS: ${{ matrix.goos == 'darwin' && '-mmacosx-version-min=12.0' || '' }}

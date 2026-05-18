@@ -2,7 +2,7 @@
 set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-WAILS3="${WAILS3:-$(go env GOPATH)/bin/wails3}"
+WAILS3="${WAILS3:-$(command -v wails3 2>/dev/null || command -v wails3.exe 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)")}"
 
 echo "==> frontend build"
 (cd frontend && pnpm install && pnpm build)
