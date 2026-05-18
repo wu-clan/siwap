@@ -20,11 +20,12 @@ else
   go test ./...
 fi
 
-echo "==> packaging Siwap $VERSION for $(go env GOOS)/$ARCH"
+GOOS_VALUE="$(go env GOOS)"
+echo "==> packaging Siwap $VERSION for $GOOS_VALUE/$ARCH"
 "$WAILS3" task package VERSION="$VERSION" ARCH="$ARCH"
 
 APP="bin/siwap.app"
-if [[ "$(go env GOOS)" == "darwin" && -d "$APP" && -n "${SIWAP_CODESIGN_IDENTITY:-}" ]]; then
+if [[ "$GOOS_VALUE" == "darwin" && -d "$APP" && -n "${SIWAP_CODESIGN_IDENTITY:-}" ]]; then
   echo "==> signing with $SIWAP_CODESIGN_IDENTITY"
   codesign --force --deep --options runtime --sign "$SIWAP_CODESIGN_IDENTITY" "$APP"
   codesign --verify --strict --deep "$APP"
