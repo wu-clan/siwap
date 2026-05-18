@@ -1,6 +1,7 @@
 import type { Harness, Preferences, TerminalProfile } from './types'
 import { ALL_PROJECTS_SCOPE_ID } from './projectScope'
 
+/** fallbackPreferences 是前端启动阶段的兜底配置，真实配置以后端返回为准 */
 export const fallbackPreferences: Preferences = {
   selectedProjectId: ALL_PROJECTS_SCOPE_ID,
   defaultProjectId: '',

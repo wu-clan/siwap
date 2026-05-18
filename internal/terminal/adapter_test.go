@@ -7,6 +7,7 @@ import (
 	"siwap/internal/domain"
 )
 
+// TestSplitArgsPreservesQuotedValues 验证对应功能行为
 func TestSplitArgsPreservesQuotedValues(t *testing.T) {
 	got := splitArgs(`--title "Hello World" -e sh -lc 'pnpm dev'`)
 	want := []string{"--title", "Hello World", "-e", "sh", "-lc", "pnpm dev"}
@@ -20,6 +21,7 @@ func TestSplitArgsPreservesQuotedValues(t *testing.T) {
 	}
 }
 
+// TestGhosttyLaunchArgsUseInlineConfigValues 验证对应功能行为
 func TestGhosttyLaunchArgsUseInlineConfigValues(t *testing.T) {
 	req := LaunchRequest{
 		WorkingDir: "/tmp/siwap-project",
@@ -47,6 +49,7 @@ func TestGhosttyLaunchArgsUseInlineConfigValues(t *testing.T) {
 	}
 }
 
+// TestRenderArgsKeepsPlaceholderValuesAtomic 验证对应功能行为
 func TestRenderArgsKeepsPlaceholderValuesAtomic(t *testing.T) {
 	req := LaunchRequest{
 		WorkingDir: "/tmp/Siwap Project",
@@ -66,6 +69,7 @@ func TestRenderArgsKeepsPlaceholderValuesAtomic(t *testing.T) {
 	}
 }
 
+// TestRenderWorkingDirArgsSupportsSeparateInlineAndTemplateForms 验证对应功能行为
 func TestRenderWorkingDirArgsSupportsSeparateInlineAndTemplateForms(t *testing.T) {
 	req := LaunchRequest{WorkingDir: "/tmp/Siwap Project"}
 	tests := []struct {
@@ -93,6 +97,7 @@ func TestRenderWorkingDirArgsSupportsSeparateInlineAndTemplateForms(t *testing.T
 	}
 }
 
+// TestTerminalShellCommandDoesNotEmbedRawControlCharacters 验证对应功能行为
 func TestTerminalShellCommandDoesNotEmbedRawControlCharacters(t *testing.T) {
 	req := LaunchRequest{
 		WorkingDir: "/tmp/siwap-project",
@@ -120,6 +125,7 @@ func TestTerminalShellCommandDoesNotEmbedRawControlCharacters(t *testing.T) {
 	}
 }
 
+// TestWindowsTerminalArgsKeepTabOpenInWorkingDirectory 验证对应功能行为
 func TestWindowsTerminalArgsKeepTabOpenInWorkingDirectory(t *testing.T) {
 	req := LaunchRequest{
 		WorkingDir: `C:\Users\c\My Project`,
@@ -139,6 +145,7 @@ func TestWindowsTerminalArgsKeepTabOpenInWorkingDirectory(t *testing.T) {
 	}
 }
 
+// TestLinuxTerminalCandidatesPreferExplicitWorkingDirectory 验证对应功能行为
 func TestLinuxTerminalCandidatesPreferExplicitWorkingDirectory(t *testing.T) {
 	req := LaunchRequest{
 		WorkingDir: "/home/c/My Project",
@@ -161,6 +168,7 @@ func TestLinuxTerminalCandidatesPreferExplicitWorkingDirectory(t *testing.T) {
 	}
 }
 
+// TestListDoesNotExposeGenericProcessAdapter 验证对应功能行为
 func TestListDoesNotExposeGenericProcessAdapter(t *testing.T) {
 	for _, adapter := range NewService().List() {
 		if adapter.ID == "generic-process" {
@@ -169,6 +177,7 @@ func TestListDoesNotExposeGenericProcessAdapter(t *testing.T) {
 	}
 }
 
+// TestWorktreeSafeName 验证对应功能行为
 func TestWorktreeSafeName(t *testing.T) {
 	got := WorktreeSafeName("Claude Feature/One")
 	if got != "claude-feature-one" {
@@ -176,6 +185,7 @@ func TestWorktreeSafeName(t *testing.T) {
 	}
 }
 
+// TestFocusUnsupportedWithoutPID 验证对应功能行为
 func TestFocusUnsupportedWithoutPID(t *testing.T) {
 	result := NewService().Focus(domainSession("unknown-adapter", 0))
 	if result.OK || result.Status != "unsupported" {
@@ -183,6 +193,7 @@ func TestFocusUnsupportedWithoutPID(t *testing.T) {
 	}
 }
 
+// TestFocusDeadTrackedPidDoesNotRequestReopen 验证对应功能行为
 func TestFocusDeadTrackedPidDoesNotRequestReopen(t *testing.T) {
 	result := NewService().Focus(domainSession("custom-terminal", 999999))
 	if !result.OK || result.Status != "unverified" {
@@ -190,6 +201,7 @@ func TestFocusDeadTrackedPidDoesNotRequestReopen(t *testing.T) {
 	}
 }
 
+// TestCloseWithoutPIDRemovesOnly 验证对应功能行为
 func TestCloseWithoutPIDRemovesOnly(t *testing.T) {
 	result := NewService().Close(domainSession("ghostty", 0))
 	if !result.OK || result.Status != "removed" {
@@ -197,6 +209,7 @@ func TestCloseWithoutPIDRemovesOnly(t *testing.T) {
 	}
 }
 
+// domainSession 构造测试用会话对象
 func domainSession(adapterID string, pid int) domain.Session {
 	return domain.Session{AdapterID: adapterID, PID: pid}
 }

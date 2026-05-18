@@ -7,6 +7,7 @@ type Run = <T>(label: string, fn: () => Promise<T>) => Promise<T | undefined>
 type Translate = (key: string) => string
 type Confirm = (description: string) => Promise<boolean>
 
+/** useTerminalActions 封装终端选择、启停、排序和自定义终端配置操作 */
 export function useTerminalActions(options: {
   preferences: Ref<Preferences>
   adapters: Ref<TerminalAdapter[]>
@@ -58,6 +59,7 @@ export function useTerminalActions(options: {
 
   async function saveProfile(profile?: TerminalProfile) {
     const draft = profile ?? profileDraft.value
+    // 保存后的自定义终端会立即进入后端适配器列表，可被默认终端或 auto 解析使用
     const updated = await run('terminal.save', () => UpsertTerminalProfile({ ...draft, enabled: true } as never) as unknown as Promise<TerminalProfile>)
     if (!updated) return
     closeTerminalProfile()

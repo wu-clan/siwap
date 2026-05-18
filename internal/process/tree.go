@@ -9,10 +9,12 @@ import (
 	"time"
 )
 
+// TreePIDs 返回指定进程及其所有子进程的 PID 列表
 func TreePIDs(root int) []int {
 	if root <= 0 {
 		return nil
 	}
+	// 记录启动器及其子进程，关闭会话时不依赖平台窗口 ID 也能清理进程树
 	seen := map[int]bool{root: true}
 	queue := []int{root}
 	for len(queue) > 0 {
@@ -32,6 +34,7 @@ func TreePIDs(root int) []int {
 	return out
 }
 
+// childPIDs 返回指定父进程的直接子进程 PID
 func childPIDs(parent int) []int {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -51,6 +54,7 @@ func childPIDs(parent int) []int {
 	return parseLinePIDs(string(out))
 }
 
+// parseLinePIDs 从按行输出的进程列表中解析 PID
 func parseLinePIDs(data string) []int {
 	var out []int
 	for _, field := range strings.Fields(data) {
@@ -62,6 +66,7 @@ func parseLinePIDs(data string) []int {
 	return out
 }
 
+// parseWindowsPIDs 从 Windows wmic 输出中解析 PID
 func parseWindowsPIDs(data string) []int {
 	var out []int
 	for _, line := range strings.Split(data, "\n") {

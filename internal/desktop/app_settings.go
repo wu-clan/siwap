@@ -11,14 +11,17 @@ import (
 	"siwap/internal/domain"
 )
 
+// GetInitialSettingsSection 返回设置窗口初始打开的分区
 func (a *App) GetInitialSettingsSection() string {
 	return a.settingsTab
 }
 
+// OpenSettingsDialog 打开设置窗口
 func (a *App) OpenSettingsDialog() (domain.ActionResult, error) {
 	return a.OpenSettingsSection("general")
 }
 
+// OpenSettingsSection 打开设置窗口并定位到指定分区
 func (a *App) OpenSettingsSection(section string) (domain.ActionResult, error) {
 	if a.desktop == nil {
 		return domain.ActionResult{OK: false, Status: "missing", Message: "Wails application is not ready."}, fmt.Errorf("Wails application is not ready")
@@ -34,6 +37,7 @@ type settingsTarget struct {
 	Action  string
 }
 
+// openOrFocusSettingsWindow 打开或聚焦设置窗口
 func (a *App) openOrFocusSettingsWindow(target settingsTarget) {
 	a.windowMu.Lock()
 	defer a.windowMu.Unlock()
@@ -70,6 +74,7 @@ func (a *App) openOrFocusSettingsWindow(target settingsTarget) {
 	settingsWindow.Focus()
 }
 
+// settingsWindowRoute 生成设置窗口路由
 func settingsWindowRoute(target settingsTarget) string {
 	next := url.URL{Path: "/"}
 	query := next.Query()
@@ -82,6 +87,7 @@ func settingsWindowRoute(target settingsTarget) string {
 	return next.String()
 }
 
+// parseSettingsTarget 解析设置窗口目标参数
 func parseSettingsTarget(value string) settingsTarget {
 	section, action, _ := strings.Cut(value, ":")
 	target := settingsTarget{Section: sanitizeSettingsSection(section)}
@@ -91,6 +97,7 @@ func parseSettingsTarget(value string) settingsTarget {
 	return target
 }
 
+// settingsTargetPayload 生成设置目标的前端事件载荷
 func settingsTargetPayload(target settingsTarget) string {
 	if target.Action == "" {
 		return target.Section
@@ -98,6 +105,7 @@ func settingsTargetPayload(target settingsTarget) string {
 	return target.Section + ":" + target.Action
 }
 
+// CloseSettingsWindow 关闭设置窗口
 func (a *App) CloseSettingsWindow() domain.ActionResult {
 	if a.settingsWindow != nil {
 		a.settingsWindow.Hide()
@@ -105,6 +113,7 @@ func (a *App) CloseSettingsWindow() domain.ActionResult {
 	return domain.ActionResult{OK: true, Status: "settings", Message: "Settings window closed."}
 }
 
+// RunAction 执行前端请求的窗口级动作
 func (a *App) RunAction(action string) domain.ActionResult {
 	switch action {
 	case "settings":
@@ -128,6 +137,7 @@ func (a *App) RunAction(action string) domain.ActionResult {
 	}
 }
 
+// sanitizeSettingsSection 清理并校验设置分区名称
 func sanitizeSettingsSection(section string) string {
 	switch section {
 	case "general", "projects", "worktrees", "terminal", "ai":

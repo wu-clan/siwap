@@ -10,9 +10,11 @@ import (
 	"siwap/internal/terminal"
 )
 
+// LaunchSession 根据前端传入的请求启动一个新的助手终端会话
 func (a *App) LaunchSession(req session.LaunchRequest) domain.Session {
 	prepared := a.prepareLaunch(req)
 	sessionEnv := terminal.SessionID()
+	// 注入会话 ID，后续聚焦、关闭、重开终端时都通过它识别同一个会话
 	env := map[string]string{
 		domain.SessionEnvironmentKey: sessionEnv,
 		"SIWAP_HARNESS_ID":           prepared.HarnessID,
@@ -41,6 +43,7 @@ func (a *App) LaunchSession(req session.LaunchRequest) domain.Session {
 	return created
 }
 
+// reopenSession 使用原始会话信息重新打开终端
 func (a *App) reopenSession(existing domain.Session) domain.ActionResult {
 	sessionEnv := terminal.SessionID()
 	env := map[string]string{
@@ -70,13 +73,16 @@ func (a *App) reopenSession(existing domain.Session) domain.ActionResult {
 	return domain.ActionResult{OK: true, Status: "reopened", Message: "Session terminal reopened."}
 }
 
+// terminalWindowTitle 生成包含会话 ID 的终端窗口标题
 func terminalWindowTitle(sessionEnv string) string {
 	return "Siwap " + sessionEnv
 }
 
+// prepareLaunch 补齐启动请求中的项目、终端、工作目录和助手命令
 func (a *App) prepareLaunch(req session.LaunchRequest) session.LaunchRequest {
 	prefs := a.config.Preferences()
 	requestedAdapter := strings.TrimSpace(req.AdapterID)
+	// 终端为空、已禁用或不可启动时回退到 auto，避免用户配置变更后启动失败
 	if requestedAdapter == "" {
 		req.AdapterID = prefs.DefaultAdapterID
 		if req.AdapterID == "" || stringSet(prefs.DisabledTerminalIDs)[req.AdapterID] || (req.AdapterID != "auto" && !a.adapterLaunchable(req.AdapterID)) {
@@ -128,6 +134,7 @@ func (a *App) prepareLaunch(req session.LaunchRequest) session.LaunchRequest {
 	return req
 }
 
+// bestEnabledAdapterID 返回当前最合适的已启用终端适配器
 func (a *App) bestEnabledAdapterID() string {
 	for _, adapter := range a.currentAdapters() {
 		if adapter.ID == "auto" {
@@ -140,6 +147,7 @@ func (a *App) bestEnabledAdapterID() string {
 	return ""
 }
 
+// adapterLaunchable 判断终端适配器是否可用于启动
 func (a *App) adapterLaunchable(id string) bool {
 	for _, adapter := range a.currentAdapters() {
 		if adapter.ID == id {
@@ -149,6 +157,7 @@ func (a *App) adapterLaunchable(id string) bool {
 	return false
 }
 
+// worktreeBaseDir 返回创建 worktree 时使用的基础目录
 func (a *App) worktreeBaseDir(project domain.Project) string {
 	prefs := a.config.Preferences()
 	if prefs.WorktreeBaseDir != "" {
@@ -160,6 +169,7 @@ func (a *App) worktreeBaseDir(project domain.Project) string {
 	return ""
 }
 
+// resolveProject 根据项目 ID 解析项目配置
 func (a *App) resolveProject(id string) (domain.Project, bool) {
 	if id != "" {
 		return a.projects.Get(id)
@@ -167,6 +177,7 @@ func (a *App) resolveProject(id string) (domain.Project, bool) {
 	return a.projects.Selected()
 }
 
+// applyTemplate 将启动请求应用到用户自定义命令模板
 func applyTemplate(template string, req session.LaunchRequest) string {
 	replacements := map[string]string{
 		"{{command}}":      req.Command,

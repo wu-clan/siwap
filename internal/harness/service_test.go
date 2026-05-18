@@ -7,6 +7,7 @@ import (
 	"siwap/internal/domain"
 )
 
+// TestBuildCommandSkipsDefaultAndFalseFlags 验证对应功能行为
 func TestBuildCommandSkipsDefaultAndFalseFlags(t *testing.T) {
 	h := domain.Harness{
 		Command: "claude --resume",
@@ -25,6 +26,7 @@ func TestBuildCommandSkipsDefaultAndFalseFlags(t *testing.T) {
 	}
 }
 
+// TestBuildCommandAddsToggleAndPicker 验证对应功能行为
 func TestBuildCommandAddsToggleAndPicker(t *testing.T) {
 	h := domain.Harness{
 		Command: "claude",

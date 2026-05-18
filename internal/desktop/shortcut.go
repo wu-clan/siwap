@@ -8,6 +8,7 @@ import (
 	"siwap/internal/domain"
 )
 
+// registerShortcut 注册全局呼出快捷键
 func (a *App) registerShortcut(shortcut string) {
 	mods, key, ok := parseShortcut(shortcut)
 	if !ok {
@@ -42,12 +43,14 @@ func (a *App) registerShortcut(shortcut string) {
 	}()
 }
 
+// unregisterShortcut 注销当前全局快捷键
 func (a *App) unregisterShortcut() {
 	a.hotkeyMu.Lock()
 	defer a.hotkeyMu.Unlock()
 	a.unregisterShortcutLocked()
 }
 
+// unregisterShortcutLocked 在持锁状态下注销全局快捷键
 func (a *App) unregisterShortcutLocked() {
 	if a.hotkeyStop != nil {
 		close(a.hotkeyStop)
@@ -60,6 +63,7 @@ func (a *App) unregisterShortcutLocked() {
 	a.hotkeyShortcut = ""
 }
 
+// parseShortcut 将配置字符串解析为快捷键组合
 func parseShortcut(shortcut string) ([]hotkey.Modifier, hotkey.Key, bool) {
 	parts := strings.FieldsFunc(shortcut, func(r rune) bool {
 		return r == '+' || r == ' ' || r == '-'
@@ -86,6 +90,7 @@ func parseShortcut(shortcut string) ([]hotkey.Modifier, hotkey.Key, bool) {
 	return mods, key, hasKey
 }
 
+// shortcutKey 将按键名称转换为 hotkey 键值
 func shortcutKey(token string) (hotkey.Key, bool) {
 	keys := map[string]hotkey.Key{
 		"a": hotkey.KeyA, "b": hotkey.KeyB, "c": hotkey.KeyC, "d": hotkey.KeyD,

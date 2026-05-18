@@ -17,8 +17,11 @@ import (
 )
 
 const currentVersion = 3
+
+// AllProjectsScopeID 表示前端“全部项目”筛选作用域
 const AllProjectsScopeID = "__all_projects"
 
+// Store 负责读写应用配置并提供线程安全的配置访问
 type Store struct {
 	mu      sync.Mutex
 	path    string
@@ -26,6 +29,7 @@ type Store struct {
 	Summary domain.AppSummary
 }
 
+// NewStore 创建配置存储并加载本地配置文件
 func NewStore() *Store {
 	path := filepath.Join(appDataDir(), "config.json")
 	store := &Store{
@@ -37,6 +41,7 @@ func NewStore() *Store {
 	return store
 }
 
+// Load 从磁盘读取配置文件并执行合并迁移
 func (s *Store) Load() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -57,22 +62,26 @@ func (s *Store) Load() error {
 	return s.saveLocked()
 }
 
+// Flush 将当前配置写入磁盘
 func (s *Store) Flush() error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.saveLocked()
 }
 
+// ConfigPath 返回配置文件路径
 func (s *Store) ConfigPath() string {
 	return s.path
 }
 
+// Preferences 返回偏好设置副本
 func (s *Store) Preferences() domain.Preferences {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return clonePreferences(s.config.Preferences)
 }
 
+// UpdatePreferences 更新并保存偏好设置
 func (s *Store) UpdatePreferences(next domain.Preferences) (domain.Preferences, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -112,12 +121,14 @@ func (s *Store) UpdatePreferences(next domain.Preferences) (domain.Preferences, 
 	return clonePreferences(prefs), s.saveLocked()
 }
 
+// ListProjects 返回项目列表副本
 func (s *Store) ListProjects() []domain.Project {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return cloneProjects(s.config.Projects)
 }
 
+// GetProject 根据项目 ID 查找项目
 func (s *Store) GetProject(id string) (domain.Project, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -129,6 +140,7 @@ func (s *Store) GetProject(id string) (domain.Project, bool) {
 	return domain.Project{}, false
 }
 
+// SelectedProject 返回当前选中的项目
 func (s *Store) SelectedProject() (domain.Project, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -144,6 +156,7 @@ func (s *Store) SelectedProject() (domain.Project, bool) {
 	return domain.Project{}, false
 }
 
+// AddProject 添加项目目录到配置
 func (s *Store) AddProject(path string, label string) (domain.Project, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -188,6 +201,7 @@ func (s *Store) AddProject(path string, label string) (domain.Project, error) {
 	return project, s.saveLocked()
 }
 
+// RemoveProject 从配置中删除项目
 func (s *Store) RemoveProject(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -214,6 +228,7 @@ func (s *Store) RemoveProject(id string) error {
 	return s.saveLocked()
 }
 
+// SelectProject 设置当前选中的项目
 func (s *Store) SelectProject(id string) (domain.Project, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -231,6 +246,7 @@ func (s *Store) SelectProject(id string) (domain.Project, error) {
 	return domain.Project{}, fmt.Errorf("project not found: %s", id)
 }
 
+// SetDefaultProject 设置默认项目
 func (s *Store) SetDefaultProject(id string) (domain.Project, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -253,6 +269,7 @@ func (s *Store) SetDefaultProject(id string) (domain.Project, error) {
 	return domain.Project{}, fmt.Errorf("project not found: %s", id)
 }
 
+// ReorderProjects 按给定 ID 顺序重排项目
 func (s *Store) ReorderProjects(ids []string) ([]domain.Project, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -283,12 +300,14 @@ func (s *Store) ReorderProjects(ids []string) ([]domain.Project, error) {
 	return cloneProjects(s.config.Projects), s.saveLocked()
 }
 
+// ListHarnesses 返回助手列表副本
 func (s *Store) ListHarnesses() []domain.Harness {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return cloneHarnesses(s.config.Harnesses)
 }
 
+// GetHarness 根据助手 ID 查找助手
 func (s *Store) GetHarness(id string) (domain.Harness, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -300,6 +319,7 @@ func (s *Store) GetHarness(id string) (domain.Harness, bool) {
 	return domain.Harness{}, false
 }
 
+// UpdateHarness 更新已有助手配置
 func (s *Store) UpdateHarness(next domain.Harness) (domain.Harness, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -332,6 +352,7 @@ func (s *Store) UpdateHarness(next domain.Harness) (domain.Harness, error) {
 	return domain.Harness{}, fmt.Errorf("harness not found: %s", next.ID)
 }
 
+// CreateHarness 创建新的自定义助手配置
 func (s *Store) CreateHarness(next domain.Harness) (domain.Harness, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -366,6 +387,7 @@ func (s *Store) CreateHarness(next domain.Harness) (domain.Harness, error) {
 	return next, s.saveLocked()
 }
 
+// RemoveHarness 删除助手配置
 func (s *Store) RemoveHarness(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -389,6 +411,7 @@ func (s *Store) RemoveHarness(id string) error {
 	return s.saveLocked()
 }
 
+// ReorderHarnesses 按给定 ID 顺序重排助手
 func (s *Store) ReorderHarnesses(ids []string) ([]domain.Harness, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -419,12 +442,14 @@ func (s *Store) ReorderHarnesses(ids []string) ([]domain.Harness, error) {
 	return cloneHarnesses(s.config.Harnesses), s.saveLocked()
 }
 
+// ListTerminalProfiles 返回自定义终端配置副本
 func (s *Store) ListTerminalProfiles() []domain.TerminalProfile {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return cloneProfiles(s.config.TerminalProfiles)
 }
 
+// UpsertTerminalProfile 新增或更新自定义终端配置
 func (s *Store) UpsertTerminalProfile(profile domain.TerminalProfile) (domain.TerminalProfile, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -456,6 +481,7 @@ func (s *Store) UpsertTerminalProfile(profile domain.TerminalProfile) (domain.Te
 	return profile, s.saveLocked()
 }
 
+// RemoveTerminalProfile 删除自定义终端配置
 func (s *Store) RemoveTerminalProfile(id string) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -475,6 +501,7 @@ func (s *Store) RemoveTerminalProfile(id string) error {
 	return s.saveLocked()
 }
 
+// saveLocked 在持锁状态下写入配置文件
 func (s *Store) saveLocked() error {
 	if err := os.MkdirAll(filepath.Dir(s.path), 0o755); err != nil {
 		return err
@@ -487,10 +514,12 @@ func (s *Store) saveLocked() error {
 	return os.WriteFile(s.path, data, 0o644)
 }
 
+// ensureProjectDefaultsLocked 在持锁状态下修正项目默认选择
 func (s *Store) ensureProjectDefaultsLocked() {
 	normalizeProjects(&s.config)
 }
 
+// normalizeProjects 规范化项目列表和项目相关偏好
 func normalizeProjects(config *domain.AppConfig) {
 	if len(config.Projects) == 0 {
 		config.Preferences.SelectedProjectID = AllProjectsScopeID
@@ -532,6 +561,7 @@ func normalizeProjects(config *domain.AppConfig) {
 	}
 }
 
+// defaultSummary 返回应用摘要默认值
 func defaultSummary() domain.AppSummary {
 	return domain.AppSummary{
 		Name: "Siwap",
@@ -552,6 +582,7 @@ func defaultSummary() domain.AppSummary {
 	}
 }
 
+// defaultConfig 返回完整配置默认值
 func defaultConfig() domain.AppConfig {
 	return domain.AppConfig{
 		Version:          currentVersion,
@@ -581,6 +612,7 @@ func defaultConfig() domain.AppConfig {
 	}
 }
 
+// defaultHarnesses 返回内置助手默认配置
 func defaultHarnesses() []domain.Harness {
 	return []domain.Harness{
 		{
@@ -629,6 +661,7 @@ func defaultHarnesses() []domain.Harness {
 	}
 }
 
+// mergeConfig 合并本地配置与当前默认配置，并按配置版本执行迁移
 func mergeConfig(loaded domain.AppConfig) domain.AppConfig {
 	base := defaultConfig()
 	loadedVersion := loaded.Version
@@ -642,6 +675,7 @@ func mergeConfig(loaded domain.AppConfig) domain.AppConfig {
 		base.Projects = loaded.Projects
 		normalizeProjects(&base)
 	}
+	// 以当前默认配置为基底，再覆盖用户配置，保证旧配置也能获得新增字段默认值
 	base.TerminalProfiles = cloneProfiles(loaded.TerminalProfiles)
 	base.Preferences = mergePreferences(base.Preferences, loaded.Preferences)
 	if loadedVersion < 2 {
@@ -655,6 +689,7 @@ func mergeConfig(loaded domain.AppConfig) domain.AppConfig {
 	return base
 }
 
+// mergePreferences 合并偏好设置并保留有效默认值
 func mergePreferences(base domain.Preferences, loaded domain.Preferences) domain.Preferences {
 	if loaded.SelectedProjectID != "" || loaded.SelectedProjectID == "" {
 		base.SelectedProjectID = loaded.SelectedProjectID
@@ -688,6 +723,7 @@ func mergePreferences(base domain.Preferences, loaded domain.Preferences) domain
 	return base
 }
 
+// mergeHarnesses 合并内置助手和用户自定义助手，保留用户排序
 func mergeHarnesses(defaults []domain.Harness, loaded []domain.Harness) []domain.Harness {
 	byID := map[string]domain.Harness{}
 	for _, harness := range defaults {
@@ -697,13 +733,11 @@ func mergeHarnesses(defaults []domain.Harness, loaded []domain.Harness) []domain
 	seen := map[string]bool{}
 	for _, harness := range loaded {
 		if current, ok := byID[harness.ID]; ok {
+			// 内置助手保留用户的启用状态、命令和参数值，图标等展示信息跟随新版默认值
 			current.Label = firstNonEmpty(harness.Label, current.Label)
 			current.Command = firstNonEmpty(harness.Command, current.Command)
 			current.Enabled = harness.Enabled
 			current.BuiltIn = true
-			current.Icon = firstNonEmpty(harness.Icon, current.Icon)
-			current.IconSource = firstNonEmpty(harness.IconSource, current.IconSource)
-			current.Tint = firstNonEmpty(harness.Tint, current.Tint)
 			if harness.Flags != nil {
 				current.Flags = cloneStringMap(harness.Flags)
 			}
@@ -725,6 +759,7 @@ func mergeHarnesses(defaults []domain.Harness, loaded []domain.Harness) []domain
 	return out
 }
 
+// cloneConfig 深拷贝应用配置
 func cloneConfig(config domain.AppConfig) domain.AppConfig {
 	config.Harnesses = cloneHarnesses(config.Harnesses)
 	config.Projects = cloneProjects(config.Projects)
@@ -733,6 +768,7 @@ func cloneConfig(config domain.AppConfig) domain.AppConfig {
 	return config
 }
 
+// clonePreferences 复制偏好设置中的切片字段
 func clonePreferences(in domain.Preferences) domain.Preferences {
 	in.TerminalOrder = append([]string(nil), in.TerminalOrder...)
 	in.DisabledTerminalIDs = append([]string(nil), in.DisabledTerminalIDs...)
@@ -740,6 +776,7 @@ func clonePreferences(in domain.Preferences) domain.Preferences {
 	return in
 }
 
+// cloneHarnesses 深拷贝助手列表
 func cloneHarnesses(in []domain.Harness) []domain.Harness {
 	out := make([]domain.Harness, len(in))
 	for i, harness := range in {
@@ -752,18 +789,21 @@ func cloneHarnesses(in []domain.Harness) []domain.Harness {
 	return out
 }
 
+// cloneProjects 复制项目列表
 func cloneProjects(in []domain.Project) []domain.Project {
 	out := make([]domain.Project, len(in))
 	copy(out, in)
 	return out
 }
 
+// cloneProfiles 复制自定义终端配置列表
 func cloneProfiles(in []domain.TerminalProfile) []domain.TerminalProfile {
 	out := make([]domain.TerminalProfile, len(in))
 	copy(out, in)
 	return out
 }
 
+// cloneStringMap 复制字符串映射
 func cloneStringMap(in map[string]string) map[string]string {
 	if in == nil {
 		return nil
@@ -775,6 +815,7 @@ func cloneStringMap(in map[string]string) map[string]string {
 	return out
 }
 
+// appDataDir 返回当前平台的应用数据目录
 func appDataDir() string {
 	home, err := os.UserHomeDir()
 	if err != nil || home == "" {
@@ -789,6 +830,7 @@ func appDataDir() string {
 	return filepath.Join(home, ".config", "siwap")
 }
 
+// normalizePath 清理并展开文件系统路径
 func normalizePath(path string) (string, error) {
 	if strings.TrimSpace(path) == "" {
 		return "", errors.New("path is required")
@@ -802,6 +844,7 @@ func normalizePath(path string) (string, error) {
 	return filepath.Abs(path)
 }
 
+// samePath 判断两个路径是否指向同一位置
 func samePath(a, b string) bool {
 	cleanA, errA := normalizePath(a)
 	cleanB, errB := normalizePath(b)
@@ -814,19 +857,23 @@ func samePath(a, b string) bool {
 	return cleanA == cleanB
 }
 
+// projectID 根据项目路径生成稳定 ID
 func projectID(path string) string {
 	return digestID("project", strings.ToLower(path))
 }
 
+// profileID 根据终端配置生成稳定 ID
 func profileID(seed string) string {
 	return digestID("profile", seed)
 }
 
+// digestID 根据前缀和输入值生成短 ID
 func digestID(prefix string, seed string) string {
 	sum := sha1.Sum([]byte(seed))
 	return prefix + "-" + hex.EncodeToString(sum[:])[:12]
 }
 
+// fallbackLabel 返回标签兜底值
 func fallbackLabel(path string, label string) string {
 	if strings.TrimSpace(label) != "" {
 		return strings.TrimSpace(label)
@@ -838,10 +885,12 @@ func fallbackLabel(path string, label string) string {
 	return base
 }
 
+// now 返回当前时间字符串
 func now() string {
 	return time.Now().Format(time.RFC3339)
 }
 
+// firstNonEmpty 返回第一个非空字符串
 func firstNonEmpty(value, fallback string) string {
 	if strings.TrimSpace(value) != "" {
 		return value
@@ -849,6 +898,7 @@ func firstNonEmpty(value, fallback string) string {
 	return fallback
 }
 
+// positiveOr 返回正数值或默认值
 func positiveOr(value int, fallback int) int {
 	if value > 0 {
 		return value
@@ -856,6 +906,7 @@ func positiveOr(value int, fallback int) int {
 	return fallback
 }
 
+// removeString 从字符串切片中移除指定值
 func removeString(values []string, remove string) []string {
 	out := values[:0]
 	for _, value := range values {
@@ -866,10 +917,12 @@ func removeString(values []string, remove string) []string {
 	return out
 }
 
+// defaultShortcut 返回当前平台默认快捷键
 func defaultShortcut() string {
 	return "Control+Command+S"
 }
 
+// isLegacyDefaultShortcut 判断快捷键是否为旧版默认值
 func isLegacyDefaultShortcut(shortcut string) bool {
 	switch strings.ToLower(strings.ReplaceAll(shortcut, " ", "")) {
 	case "", "option+s", "alt+s":

@@ -9,6 +9,7 @@ const (
 	edgeRevealCooldown     = 650 * time.Millisecond
 )
 
+// startEdgeRevealWatcher 启动左侧边缘呼出监听
 func (a *App) startEdgeRevealWatcher() {
 	a.edgeMu.Lock()
 	if a.edgeStop != nil {
@@ -22,6 +23,7 @@ func (a *App) startEdgeRevealWatcher() {
 	go a.watchLeftEdgeReveal(stop)
 }
 
+// stopEdgeRevealWatcher 停止左侧边缘呼出监听
 func (a *App) stopEdgeRevealWatcher() {
 	a.edgeMu.Lock()
 	defer a.edgeMu.Unlock()
@@ -32,6 +34,7 @@ func (a *App) stopEdgeRevealWatcher() {
 	a.edgeStop = nil
 }
 
+// watchLeftEdgeReveal 周期检测鼠标位置并处理边缘呼出
 func (a *App) watchLeftEdgeReveal(stop <-chan struct{}) {
 	ticker := time.NewTicker(edgeRevealInterval)
 	defer ticker.Stop()
@@ -64,6 +67,7 @@ func (a *App) watchLeftEdgeReveal(stop <-chan struct{}) {
 				continue
 			}
 			now := time.Now()
+			// 鼠标需要在同一个边缘点停留一段时间，避免快速划过屏幕边缘时误触发
 			if candidate.since.IsZero() || candidate.x != x || candidate.y != y {
 				candidate = edgeRevealCandidate{x: x, y: y, since: now}
 				continue
@@ -86,6 +90,7 @@ type edgeRevealCandidate struct {
 	since time.Time
 }
 
+// shouldHideOutsideMainWindow 判断主窗口失焦后是否需要自动隐藏
 func (a *App) shouldHideOutsideMainWindow() bool {
 	if a.mainWindow == nil || !a.mainWindow.IsVisible() || !a.config.Preferences().AutohideOnBlur || a.settingsWindowIsVisible() {
 		return false
@@ -98,6 +103,7 @@ func (a *App) shouldHideOutsideMainWindow() bool {
 	return ok && !pointInRect(x, y, left, top, width, height)
 }
 
+// leftEdgeCursorPosition 返回位于屏幕左边缘的鼠标坐标
 func (a *App) leftEdgeCursorPosition() (int, int, bool) {
 	if a.mainWindow == nil || a.mainWindow.IsVisible() {
 		return 0, 0, false
@@ -113,6 +119,7 @@ func (a *App) leftEdgeCursorPosition() (int, int, bool) {
 	return x, y, cursorAtExactLeftEdge(x, y, left, top, height, true)
 }
 
+// cursorAtExactLeftEdge 判断鼠标是否位于屏幕精确左边缘
 func cursorAtExactLeftEdge(x int, y int, left int, top int, height int, hasScreen bool) bool {
 	if !hasScreen {
 		return x <= 0
@@ -123,6 +130,7 @@ func cursorAtExactLeftEdge(x int, y int, left int, top int, height int, hasScree
 	return x == left
 }
 
+// mainWindowBounds 返回主窗口边界
 func (a *App) mainWindowBounds() (left int, top int, width int, height int, ok bool) {
 	if a.mainWindow == nil {
 		return 0, 0, 0, 0, false
@@ -132,6 +140,7 @@ func (a *App) mainWindowBounds() (left int, top int, width int, height int, ok b
 	return left, top, width, height, width > 0 && height > 0
 }
 
+// pointInRect 判断坐标是否位于矩形内
 func pointInRect(x int, y int, left int, top int, width int, height int) bool {
 	if width <= 0 || height <= 0 {
 		return false
@@ -139,6 +148,7 @@ func pointInRect(x int, y int, left int, top int, width int, height int) bool {
 	return x >= left && x < left+width && y >= top && y < top+height
 }
 
+// primaryScreenEdge 返回主屏幕左边缘位置
 func (a *App) primaryScreenEdge() (left int, top int, height int, ok bool) {
 	if a.desktop == nil {
 		return 0, 0, 0, false
@@ -167,6 +177,7 @@ func (a *App) primaryScreenEdge() (left int, top int, height int, ok bool) {
 	return screen.X, screen.Y, height, height > 0
 }
 
+// settingsWindowIsVisible 判断设置窗口是否可见
 func (a *App) settingsWindowIsVisible() bool {
 	if a.settingsWindow == nil {
 		return false

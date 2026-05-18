@@ -6,6 +6,7 @@ import type { SettingsSection } from '../domain/settings'
 type Run = <T>(label: string, fn: () => Promise<T>) => Promise<T | undefined>
 type Translate = (key: string, named?: Record<string, unknown>) => string
 
+/** useSessionActions 封装会话启动、聚焦、关闭和清空等用户操作 */
 export function useSessionActions(options: {
   selectedProject: ComputedRef<Project | undefined>
   selectedWorktreePath: Ref<string>
@@ -19,6 +20,7 @@ export function useSessionActions(options: {
   preserveSessionSelection: () => void
 }) {
   const { selectedProject, selectedWorktreePath, selectedSessionId, sessions, preferences, actionMessage, run, t, openSettings, preserveSessionSelection } = options
+  // 防止连续点击时重复发送同一个启动或聚焦请求
   const launchKeys = new Set<string>()
   const focusIds = new Set<string>()
 
@@ -52,6 +54,7 @@ export function useSessionActions(options: {
     try {
       const created = await run(launchAssistantLabel(harness.label), () => LaunchSession(request as never) as unknown as Promise<Session>)
       if (!created) return
+      // 以后端会话列表为准，失败的启动也会保留在列表中便于查看错误和重试
       sessions.value = await ListSessions() as unknown as Session[]
       selectedSessionId.value = created.id
       if (created.status === 'failed') actionMessage.value = created.error || t('session.launchFailedKept')
@@ -67,6 +70,7 @@ export function useSessionActions(options: {
     try {
       const result = await run('action.focusSession', () => FocusSession(id) as unknown as Promise<ActionResult>)
       if (result) actionMessage.value = result.message
+      // 聚焦可能触发终端重开，因此刷新后端状态而不是直接改本地对象
       sessions.value = await ListSessions() as unknown as Session[]
       preserveSessionSelection()
     } finally {

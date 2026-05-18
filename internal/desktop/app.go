@@ -17,10 +17,12 @@ import (
 	"siwap/internal/worktree"
 )
 
+// Version 表示当前应用版本，由构建脚本注入
 var Version = "dev"
 
 const resetSidebarWindowFlag = "--reset-sidebar-window"
 
+// App 聚合桌面窗口、配置、项目、终端和会话服务
 type App struct {
 	ctx            context.Context
 	cancel         context.CancelFunc
@@ -45,6 +47,7 @@ type App struct {
 	edgeStop       chan struct{}
 }
 
+// NewApp 创建桌面应用服务实例
 func NewApp() *App {
 	store := config.NewStore()
 	return &App{
@@ -58,6 +61,7 @@ func NewApp() *App {
 	}
 }
 
+// attachDesktop 绑定 Wails 应用和主窗口实例
 func (a *App) attachDesktop(desktop *application.App, mainWindow application.Window) {
 	a.windowMu.Lock()
 	defer a.windowMu.Unlock()
@@ -65,11 +69,13 @@ func (a *App) attachDesktop(desktop *application.App, mainWindow application.Win
 	a.mainWindow = mainWindow
 }
 
+// ServiceStartup 在 Wails 服务启动时初始化运行上下文
 func (a *App) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
 	a.ctx, a.cancel = context.WithCancel(ctx)
 	return nil
 }
 
+// ServiceShutdown 在 Wails 服务关闭时释放资源并保存配置
 func (a *App) ServiceShutdown() error {
 	if a.cancel != nil {
 		a.cancel()
@@ -80,6 +86,7 @@ func (a *App) ServiceShutdown() error {
 	return nil
 }
 
+// GetBootstrap 返回前端启动所需的完整数据
 func (a *App) GetBootstrap() domain.Bootstrap {
 	return domain.Bootstrap{
 		Version:          Version,
@@ -94,12 +101,15 @@ func (a *App) GetBootstrap() domain.Bootstrap {
 	}
 }
 
+// GetPreferences 返回当前偏好设置
 func (a *App) GetPreferences() domain.Preferences { return a.config.Preferences() }
 
+// GetWindowRole 返回当前窗口角色
 func (a *App) GetWindowRole() string {
 	return "main"
 }
 
+// emit 向前端发送事件
 func (a *App) emit(name string, data interface{}) {
 	if a.desktop == nil {
 		return

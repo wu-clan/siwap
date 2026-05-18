@@ -8,6 +8,7 @@ import (
 	"siwap/internal/domain"
 )
 
+// TestUpdateHarnessCanDisableAssistant 验证对应功能行为
 func TestUpdateHarnessCanDisableAssistant(t *testing.T) {
 	store := testStore(t)
 
@@ -24,6 +25,7 @@ func TestUpdateHarnessCanDisableAssistant(t *testing.T) {
 	}
 }
 
+// TestMergeHarnessesPreservesDisabledState 验证对应功能行为
 func TestMergeHarnessesPreservesDisabledState(t *testing.T) {
 	loaded := defaultConfig()
 	loaded.Harnesses[1].Enabled = false
@@ -36,6 +38,7 @@ func TestMergeHarnessesPreservesDisabledState(t *testing.T) {
 	}
 }
 
+// TestMergePreferencesPreservesWindowPosition 验证对应功能行为
 func TestMergePreferencesPreservesWindowPosition(t *testing.T) {
 	loaded := defaultConfig()
 	loaded.Preferences.WindowX = 42
@@ -48,6 +51,7 @@ func TestMergePreferencesPreservesWindowPosition(t *testing.T) {
 	}
 }
 
+// TestUpdatePreferencesCanClearSavedWindowPosition 验证对应功能行为
 func TestUpdatePreferencesCanClearSavedWindowPosition(t *testing.T) {
 	store := testStore(t)
 	prefs := store.Preferences()
@@ -71,6 +75,7 @@ func TestUpdatePreferencesCanClearSavedWindowPosition(t *testing.T) {
 	}
 }
 
+// TestNormalizeProjectsUsesDefaultInsteadOfAllProjectsScope 验证对应功能行为
 func TestNormalizeProjectsUsesDefaultInsteadOfAllProjectsScope(t *testing.T) {
 	cfg := defaultConfig()
 	cfg.Projects = []domain.Project{
@@ -89,6 +94,7 @@ func TestNormalizeProjectsUsesDefaultInsteadOfAllProjectsScope(t *testing.T) {
 	}
 }
 
+// TestSetDefaultProjectAlsoSelectsDefaultProject 验证对应功能行为
 func TestSetDefaultProjectAlsoSelectsDefaultProject(t *testing.T) {
 	store := testStore(t)
 	root := t.TempDir()
@@ -121,6 +127,7 @@ func TestSetDefaultProjectAlsoSelectsDefaultProject(t *testing.T) {
 	}
 }
 
+// TestSelectProjectSupportsAllProjectsScope 验证对应功能行为
 func TestSelectProjectSupportsAllProjectsScope(t *testing.T) {
 	store := testStore(t)
 	projectDir := t.TempDir()
@@ -144,6 +151,7 @@ func TestSelectProjectSupportsAllProjectsScope(t *testing.T) {
 	}
 }
 
+// testStore 创建测试用配置存储
 func testStore(t *testing.T) *Store {
 	t.Helper()
 	return &Store{path: filepath.Join(t.TempDir(), "config.json"), config: defaultConfig()}

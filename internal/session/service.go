@@ -9,6 +9,7 @@ import (
 	"siwap/internal/terminal"
 )
 
+// LaunchRequest 表示创建终端会话时需要的参数
 type LaunchRequest struct {
 	HarnessID     string            `json:"harnessId"`
 	ProjectID     string            `json:"projectId"`
@@ -20,22 +21,26 @@ type LaunchRequest struct {
 	WorktreePath  string            `json:"worktreePath"`
 }
 
+// Service 管理应用内的会话状态
 type Service struct {
 	mu       sync.Mutex
 	counter  int
 	sessions []domain.Session
 }
 
+// NewService 创建会话服务
 func NewService() *Service {
 	return &Service{sessions: []domain.Session{}}
 }
 
+// List 返回当前所有会话的副本
 func (s *Service) List() []domain.Session {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return cloneSessions(s.sessions)
 }
 
+// Get 根据会话 ID 查找会话
 func (s *Service) Get(id string) (domain.Session, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -47,6 +52,7 @@ func (s *Service) Get(id string) (domain.Session, bool) {
 	return domain.Session{}, false
 }
 
+// Create 根据启动结果创建新的会话记录
 func (s *Service) Create(req LaunchRequest, result terminal.LaunchResult, sessionEnv string) domain.Session {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -83,6 +89,7 @@ func (s *Service) Create(req LaunchRequest, result terminal.LaunchResult, sessio
 	return created
 }
 
+// MarkError 创建失败状态的会话记录，便于前端展示错误
 func (s *Service) MarkError(req LaunchRequest, err error, sessionEnv string) domain.Session {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -112,6 +119,7 @@ func (s *Service) MarkError(req LaunchRequest, err error, sessionEnv string) dom
 	return created
 }
 
+// UpdateStatus 更新指定会话的状态和错误信息
 func (s *Service) UpdateStatus(id string, status string, message string) (domain.Session, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -126,6 +134,7 @@ func (s *Service) UpdateStatus(id string, status string, message string) (domain
 	return domain.Session{}, false
 }
 
+// UpdateLaunch 使用重新启动后的结果更新会话
 func (s *Service) UpdateLaunch(id string, result terminal.LaunchResult, sessionEnv string) (domain.Session, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -151,6 +160,7 @@ func (s *Service) UpdateLaunch(id string, result terminal.LaunchResult, sessionE
 	return domain.Session{}, false
 }
 
+// Remove 从会话列表中移除指定会话
 func (s *Service) Remove(id string) (domain.Session, bool) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -163,6 +173,7 @@ func (s *Service) Remove(id string) (domain.Session, bool) {
 	return domain.Session{}, false
 }
 
+// Clear 清空所有会话记录
 func (s *Service) Clear() []domain.Session {
 	s.mu.Lock()
 	defer s.mu.Unlock()
@@ -171,6 +182,7 @@ func (s *Service) Clear() []domain.Session {
 	return out
 }
 
+// cloneSessions 复制会话切片，避免外部修改内部状态
 func cloneSessions(in []domain.Session) []domain.Session {
 	out := make([]domain.Session, len(in))
 	copy(out, in)

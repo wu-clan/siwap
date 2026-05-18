@@ -2,6 +2,7 @@ package desktop
 
 import "siwap/internal/domain"
 
+// currentAdapters 返回已按偏好过滤和排序的终端适配器
 func (a *App) currentAdapters() []domain.TerminalAdapter {
 	prefs := a.config.Preferences()
 	disabled := stringSet(prefs.DisabledTerminalIDs)
@@ -42,6 +43,7 @@ func (a *App) currentAdapters() []domain.TerminalAdapter {
 	return ordered
 }
 
+// stringSet 将字符串列表转换为集合
 func stringSet(values []string) map[string]bool {
 	out := map[string]bool{}
 	for _, value := range values {

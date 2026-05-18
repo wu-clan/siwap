@@ -8,6 +8,7 @@ import (
 	"testing"
 )
 
+// TestParseWorktrees 验证对应功能行为
 func TestParseWorktrees(t *testing.T) {
 	data := "worktree /repo\nHEAD abc123\nbranch refs/heads/main\n\nworktree /repo.worktrees/feature\nHEAD def456\nbranch refs/heads/feature/test\n\n"
 	items := parseWorktrees("project-1", "/repo", data)
@@ -25,6 +26,7 @@ func TestParseWorktrees(t *testing.T) {
 	}
 }
 
+// TestRemoveProtectsMainWorktreeAndDefaultBranches 验证对应功能行为
 func TestRemoveProtectsMainWorktreeAndDefaultBranches(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not available")
@@ -56,6 +58,7 @@ func TestRemoveProtectsMainWorktreeAndDefaultBranches(t *testing.T) {
 	}
 }
 
+// TestBranchesListsExistingGitBranches 验证对应功能行为
 func TestBranchesListsExistingGitBranches(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not available")
@@ -69,6 +72,7 @@ func TestBranchesListsExistingGitBranches(t *testing.T) {
 	}
 }
 
+// TestCreateRejectsUnknownBaseBranch 验证对应功能行为
 func TestCreateRejectsUnknownBaseBranch(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
 		t.Skip("git not available")
@@ -87,6 +91,7 @@ func TestCreateRejectsUnknownBaseBranch(t *testing.T) {
 	}
 }
 
+// runGit 在指定目录执行 Git 命令
 func runGit(t *testing.T, dir string, args ...string) {
 	t.Helper()
 	cmd := exec.Command("git", args...)
@@ -96,10 +101,12 @@ func runGit(t *testing.T, dir string, args ...string) {
 	}
 }
 
+// initTestRepo 初始化测试用 Git 仓库
 func initTestRepo(t *testing.T) string {
 	return initTestRepoAt(t, filepath.Join(t.TempDir(), "repo"))
 }
 
+// initTestRepoAt 初始化测试用 Git 仓库
 func initTestRepoAt(t *testing.T, repo string) string {
 	t.Helper()
 	if err := os.MkdirAll(repo, 0o755); err != nil {

@@ -7,6 +7,7 @@ import (
 	"siwap/internal/terminal"
 )
 
+// TestCreateUsesActualLaunchedAdapter 验证对应功能行为
 func TestCreateUsesActualLaunchedAdapter(t *testing.T) {
 	svc := NewService()
 	created := svc.Create(LaunchRequest{

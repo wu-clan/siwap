@@ -7,6 +7,7 @@ import (
 	"github.com/wailsapp/wails/v3/pkg/events"
 )
 
+// Run 创建并运行 Wails 桌面应用
 func Run(assets embed.FS) error {
 	service := NewApp()
 	prefs := service.config.Preferences()
@@ -84,6 +85,7 @@ func Run(assets embed.FS) error {
 	return desktop.Run()
 }
 
+// appMenu 构造桌面应用菜单
 func appMenu(app *App) *application.Menu {
 	root := application.NewMenu()
 	appMenu := root.AddSubmenu("Siwap")

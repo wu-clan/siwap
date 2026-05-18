@@ -1,7 +1,9 @@
 package domain
 
+// SessionEnvironmentKey 是注入终端环境中的会话 ID 键名
 const SessionEnvironmentKey = "SIWAP_SESSION_ID"
 
+// AppSummary 描述应用的基础信息和能力范围
 type AppSummary struct {
 	Name       string   `json:"name"`
 	Stack      []string `json:"stack"`
@@ -9,6 +11,7 @@ type AppSummary struct {
 	Exclusions []string `json:"exclusions"`
 }
 
+// AppConfig 表示持久化到本地的完整应用配置
 type AppConfig struct {
 	Version          int               `json:"version"`
 	Harnesses        []Harness         `json:"harnesses"`
@@ -17,6 +20,7 @@ type AppConfig struct {
 	Preferences      Preferences       `json:"preferences"`
 }
 
+// Preferences 表示用户偏好设置
 type Preferences struct {
 	SelectedProjectID       string   `json:"selectedProjectId"`
 	DefaultProjectID        string   `json:"defaultProjectId"`
@@ -41,6 +45,7 @@ type Preferences struct {
 	AlwaysOnTop             bool     `json:"alwaysOnTop"`
 }
 
+// TerminalProfile 表示用户自定义终端配置
 type TerminalProfile struct {
 	ID               string `json:"id"`
 	Label            string `json:"label"`
@@ -52,6 +57,7 @@ type TerminalProfile struct {
 	Enabled          bool   `json:"enabled"`
 }
 
+// Harness 表示一个可启动的 AI 助手配置
 type Harness struct {
 	ID          string            `json:"id"`
 	Label       string            `json:"label"`
@@ -65,6 +71,7 @@ type Harness struct {
 	FlagOptions []HarnessFlag     `json:"flagOptions"`
 }
 
+// HarnessFlag 表示助手命令支持的可配置参数
 type HarnessFlag struct {
 	Key         string   `json:"key"`
 	Label       string   `json:"label"`
@@ -74,6 +81,7 @@ type HarnessFlag struct {
 	Options     []string `json:"options"`
 }
 
+// Project 表示一个用户项目目录
 type Project struct {
 	ID         string `json:"id"`
 	Path       string `json:"path"`
@@ -82,6 +90,7 @@ type Project struct {
 	LastUsedAt string `json:"lastUsedAt,omitempty"`
 }
 
+// TerminalCapability 描述终端适配器的一项能力
 type TerminalCapability struct {
 	Key         string `json:"key"`
 	Label       string `json:"label"`
@@ -89,6 +98,7 @@ type TerminalCapability struct {
 	Description string `json:"description"`
 }
 
+// TerminalAdapter 描述一个可用终端适配器
 type TerminalAdapter struct {
 	ID           string               `json:"id"`
 	Label        string               `json:"label"`
@@ -102,6 +112,7 @@ type TerminalAdapter struct {
 	Capabilities []TerminalCapability `json:"capabilities"`
 }
 
+// TerminalSessionRef 保存终端会话的可追踪引用信息
 type TerminalSessionRef struct {
 	AdapterID             string   `json:"adapterId"`
 	Platform              string   `json:"platform"`
@@ -119,6 +130,7 @@ type TerminalSessionRef struct {
 	RequiresPlatformGrant bool     `json:"requiresPlatformGrant"`
 }
 
+// Session 表示一次助手终端会话
 type Session struct {
 	ID           string             `json:"id"`
 	HarnessID    string             `json:"harnessId"`
@@ -140,6 +152,7 @@ type Session struct {
 	Ref          TerminalSessionRef `json:"ref"`
 }
 
+// Worktree 表示一个 Git worktree
 type Worktree struct {
 	ID         string `json:"id"`
 	ProjectID  string `json:"projectId"`
@@ -154,12 +167,14 @@ type Worktree struct {
 	CreatedAt  string `json:"createdAt,omitempty"`
 }
 
+// ActionResult 表示后端动作执行结果
 type ActionResult struct {
 	OK      bool   `json:"ok"`
 	Status  string `json:"status"`
 	Message string `json:"message"`
 }
 
+// WindowState 表示桌面窗口状态
 type WindowState struct {
 	Width       int    `json:"width"`
 	Height      int    `json:"height"`
@@ -167,6 +182,7 @@ type WindowState struct {
 	Mode        string `json:"mode"`
 }
 
+// Bootstrap 表示前端启动时需要的一次性数据
 type Bootstrap struct {
 	Version          string            `json:"version"`
 	Summary          AppSummary        `json:"summary"`

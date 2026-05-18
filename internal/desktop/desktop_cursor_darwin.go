@@ -23,6 +23,7 @@ var darwinCursor struct {
 	symbolError error
 }
 
+// cursorPosition 返回 macOS 当前鼠标位置
 func cursorPosition() (int, int, bool) {
 	darwinCursor.once.Do(loadDarwinCursorAPI)
 	if !darwinCursor.ok {
@@ -37,6 +38,7 @@ func cursorPosition() (int, int, bool) {
 	return int(point.X), int(point.Y), true
 }
 
+// loadDarwinCursorAPI 加载 macOS 鼠标位置查询 API
 func loadDarwinCursorAPI() {
 	coreGraphics, err := purego.Dlopen("/System/Library/Frameworks/CoreGraphics.framework/CoreGraphics", purego.RTLD_NOW|purego.RTLD_GLOBAL)
 	if err != nil {
@@ -60,6 +62,7 @@ func loadDarwinCursorAPI() {
 	darwinCursor.ok = true
 }
 
+// registerDarwinCursorFunc 注册 macOS 鼠标位置回调函数
 func registerDarwinCursorFunc(handle uintptr, name string, target any) bool {
 	symbol, err := purego.Dlsym(handle, name)
 	if err != nil {

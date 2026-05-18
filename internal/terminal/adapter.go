@@ -16,6 +16,7 @@ import (
 	"siwap/internal/domain"
 )
 
+// LaunchRequest 表示终端适配器启动会话所需的参数
 type LaunchRequest struct {
 	AdapterID   string            `json:"adapterId"`
 	Title       string            `json:"title"`
@@ -25,6 +26,7 @@ type LaunchRequest struct {
 	Background  bool              `json:"background"`
 }
 
+// LaunchResult 表示终端启动后的统一结果
 type LaunchResult struct {
 	PID       int                       `json:"pid"`
 	Status    string                    `json:"status"`
@@ -34,12 +36,15 @@ type LaunchResult struct {
 	Ref       domain.TerminalSessionRef `json:"ref"`
 }
 
+// Service 提供终端适配器列表、启动、聚焦和关闭能力
 type Service struct{}
 
+// NewService 创建终端适配器服务
 func NewService() *Service {
 	return &Service{}
 }
 
+// List 返回内置终端适配器列表
 func (s *Service) List() []domain.TerminalAdapter {
 	adapters := []domain.TerminalAdapter{
 		autoAdapter(),
@@ -51,6 +56,7 @@ func (s *Service) List() []domain.TerminalAdapter {
 	return adapters
 }
 
+// ListWithProfiles 返回内置终端和自定义终端配置组成的适配器列表
 func (s *Service) ListWithProfiles(profiles []domain.TerminalProfile) []domain.TerminalAdapter {
 	adapters := s.List()
 	for _, profile := range profiles {
@@ -78,6 +84,7 @@ func (s *Service) ListWithProfiles(profiles []domain.TerminalProfile) []domain.T
 	return adapters
 }
 
+// LaunchWithProfiles 根据请求和自定义配置启动终端
 func (s *Service) LaunchWithProfiles(req LaunchRequest, profiles []domain.TerminalProfile) (LaunchResult, error) {
 	if strings.TrimSpace(req.Command) == "" {
 		return LaunchResult{}, errors.New("command is required")
@@ -119,6 +126,7 @@ func (s *Service) LaunchWithProfiles(req LaunchRequest, profiles []domain.Termin
 	}
 }
 
+// launchProfile 使用自定义终端配置启动会话
 func (s *Service) launchProfile(req LaunchRequest, profile domain.TerminalProfile) (LaunchResult, error) {
 	if profile.ExecutablePath == "" {
 		return LaunchResult{}, fmt.Errorf("terminal profile %s has no executable", profile.Label)
@@ -139,7 +147,9 @@ func (s *Service) launchProfile(req LaunchRequest, profile domain.TerminalProfil
 	return result, nil
 }
 
+// Focus 尝试将指定会话对应的终端窗口切到前台
 func (s *Service) Focus(session domain.Session) domain.ActionResult {
+	// 只有部分终端能可靠定位窗口；不支持的终端仅返回进程追踪状态，不猜测窗口 ID
 	switch session.AdapterID {
 	case "ghostty":
 		if runtime.GOOS == "darwin" {
@@ -176,6 +186,7 @@ func (s *Service) Focus(session domain.Session) domain.ActionResult {
 	return domain.ActionResult{OK: false, Status: "unsupported", Message: "Native focus is not available for this adapter on this platform."}
 }
 
+// Close 尝试关闭指定会话对应的终端进程或窗口
 func (s *Service) Close(session domain.Session) domain.ActionResult {
 	if runtime.GOOS == "darwin" {
 		if result := closeDarwinTerminalWindow(session); result.Status != "unsupported" {
@@ -202,6 +213,7 @@ func (s *Service) Close(session domain.Session) domain.ActionResult {
 	return domain.ActionResult{OK: true, Status: "closing", Message: fmt.Sprintf("Sent interrupt to PID %d.", session.PID)}
 }
 
+// bestAdapterID 选择当前平台最合适的终端适配器
 func (s *Service) bestAdapterID() string {
 	for _, adapter := range s.List() {
 		if adapter.ID == "auto" {
@@ -214,6 +226,7 @@ func (s *Service) bestAdapterID() string {
 	return ""
 }
 
+// launchGhostty 使用 Ghostty 启动终端会话
 func (s *Service) launchGhostty(req LaunchRequest) (LaunchResult, error) {
 	if runtime.GOOS == "darwin" && appExists("/Applications/Ghostty.app") {
 		return s.launchDarwinGhostty(req)
@@ -245,6 +258,7 @@ type terminalAppSurface struct {
 	Title    string `json:"title"`
 }
 
+// launchDarwinGhostty 使用 macOS Ghostty 自动化能力启动会话
 func (s *Service) launchDarwinGhostty(req LaunchRequest) (LaunchResult, error) {
 	initialInput := terminalShellCommand(req)
 	script := fmt.Sprintf(`
@@ -334,6 +348,7 @@ end tell`, appleScriptJSONHandlers, appleScriptLiteral(req.WorkingDir), ghosttyE
 	return result, nil
 }
 
+// ghosttyLaunchArgs 生成 Ghostty 启动参数
 func ghosttyLaunchArgs(req LaunchRequest, shell string) []string {
 	return []string{
 		"--working-directory=" + req.WorkingDir,
@@ -345,6 +360,7 @@ func ghosttyLaunchArgs(req LaunchRequest, shell string) []string {
 	}
 }
 
+// launchMacTerminal 使用 macOS Terminal.app 启动会话
 func (s *Service) launchMacTerminal(req LaunchRequest) (LaunchResult, error) {
 	if runtime.GOOS != "darwin" {
 		return LaunchResult{}, errors.New("macOS Terminal.app adapter is only available on macOS")
@@ -420,6 +436,7 @@ end tell`, appleScriptJSONHandlers, strconv.Quote(command))
 	return result, nil
 }
 
+// launchWindowsTerminal 使用 Windows Terminal 启动会话
 func (s *Service) launchWindowsTerminal(req LaunchRequest) (LaunchResult, error) {
 	if runtime.GOOS != "windows" {
 		return LaunchResult{}, errors.New("Windows Terminal adapter is only available on Windows")
@@ -436,10 +453,12 @@ func (s *Service) launchWindowsTerminal(req LaunchRequest) (LaunchResult, error)
 	return launchResult(req, "windows-terminal", cmd.Process.Pid, "launched", "Launched with Windows Terminal.", true, false), nil
 }
 
+// windowsTerminalArgs 生成 Windows Terminal 启动参数
 func windowsTerminalArgs(req LaunchRequest, shell string) []string {
 	return []string{"-w", "0", "new-tab", "--title", req.Title, "--startingDirectory", req.WorkingDir, shell, "/K", req.Command}
 }
 
+// launchLinuxTerminal 使用 Linux 桌面终端启动会话
 func (s *Service) launchLinuxTerminal(req LaunchRequest) (LaunchResult, error) {
 	if runtime.GOOS != "linux" {
 		return LaunchResult{}, errors.New("Linux desktop terminal adapter is only available on Linux")
@@ -459,6 +478,7 @@ func (s *Service) launchLinuxTerminal(req LaunchRequest) (LaunchResult, error) {
 	return LaunchResult{}, errors.New("no supported Linux desktop terminal command was found")
 }
 
+// linuxTerminalCandidates 返回 Linux 终端候选命令
 func linuxTerminalCandidates(req LaunchRequest, shell string) [][]string {
 	return [][]string{
 		{"x-terminal-emulator", "-e", shell, "-lc", req.Command},
@@ -468,6 +488,7 @@ func linuxTerminalCandidates(req LaunchRequest, shell string) [][]string {
 	}
 }
 
+// launchResult 构造统一的终端启动结果
 func launchResult(req LaunchRequest, adapterID string, pid int, status string, message string, canFocus bool, canClose bool) LaunchResult {
 	return LaunchResult{
 		PID:       pid,
@@ -489,6 +510,7 @@ func launchResult(req LaunchRequest, adapterID string, pid int, status string, m
 	}
 }
 
+// autoAdapter 返回自动选择终端的适配器描述
 func autoAdapter() domain.TerminalAdapter {
 	return domain.TerminalAdapter{
 		ID:         "auto",
@@ -507,6 +529,7 @@ func autoAdapter() domain.TerminalAdapter {
 	}
 }
 
+// ghosttyAdapter 返回 Ghostty 适配器描述
 func ghosttyAdapter() domain.TerminalAdapter {
 	installed := CommandExists("ghostty") || appExists("/Applications/Ghostty.app")
 	return domain.TerminalAdapter{
@@ -531,6 +554,7 @@ func ghosttyAdapter() domain.TerminalAdapter {
 	}
 }
 
+// terminalAppAdapter 返回 macOS Terminal.app 适配器描述
 func terminalAppAdapter() domain.TerminalAdapter {
 	installed := runtime.GOOS == "darwin" && appExists("/System/Applications/Utilities/Terminal.app")
 	return domain.TerminalAdapter{
@@ -552,6 +576,7 @@ func terminalAppAdapter() domain.TerminalAdapter {
 	}
 }
 
+// windowsTerminalAdapter 返回 Windows Terminal 适配器描述
 func windowsTerminalAdapter() domain.TerminalAdapter {
 	installed := runtime.GOOS == "windows" && CommandExists("wt")
 	return domain.TerminalAdapter{
@@ -573,6 +598,7 @@ func windowsTerminalAdapter() domain.TerminalAdapter {
 	}
 }
 
+// linuxDesktopAdapter 返回 Linux 桌面终端适配器描述
 func linuxDesktopAdapter() domain.TerminalAdapter {
 	installed := runtime.GOOS == "linux" && (CommandExists("x-terminal-emulator") || CommandExists("gnome-terminal") || CommandExists("konsole") || CommandExists("xterm"))
 	return domain.TerminalAdapter{
@@ -594,7 +620,9 @@ func linuxDesktopAdapter() domain.TerminalAdapter {
 	}
 }
 
+// terminalShellCommand 生成在终端中执行的完整 shell 命令
 func terminalShellCommand(req LaunchRequest) string {
+	// 先设置窗口标题、工作目录和环境变量，再执行助手命令，保证会话可追踪
 	parts := []string{"printf '\\033]0;%s\\007' " + shellQuote(req.Title), "cd " + shellQuote(req.WorkingDir)}
 	for key, value := range req.Environment {
 		parts = append(parts, "export "+key+"="+shellQuote(value))
@@ -604,6 +632,7 @@ func terminalShellCommand(req LaunchRequest) string {
 	return strings.Join(parts, "; ")
 }
 
+// mergeEnv 将附加环境变量合并到当前进程环境
 func mergeEnv(values map[string]string) []string {
 	env := os.Environ()
 	for key, value := range values {
@@ -612,6 +641,7 @@ func mergeEnv(values map[string]string) []string {
 	return env
 }
 
+// focusMode 根据能力标记返回聚焦模式
 func focusMode(canFocus bool) string {
 	if canFocus {
 		return "native-or-platform"
@@ -619,6 +649,7 @@ func focusMode(canFocus bool) string {
 	return "tracked-only"
 }
 
+// closeMode 根据能力和进程号返回关闭模式
 func closeMode(canClose bool, pid int) string {
 	if canClose && pid > 0 {
 		return "pid-interrupt"
@@ -626,6 +657,7 @@ func closeMode(canClose bool, pid int) string {
 	return "remove-only"
 }
 
+// userShell 返回当前用户默认 shell
 func userShell() string {
 	if runtime.GOOS == "windows" {
 		if ComSpec := os.Getenv("ComSpec"); ComSpec != "" {
@@ -639,6 +671,7 @@ func userShell() string {
 	return "/bin/sh"
 }
 
+// ensureDir 校验路径是否为目录
 func ensureDir(path string) error {
 	info, err := os.Stat(path)
 	if err != nil {
@@ -650,6 +683,7 @@ func ensureDir(path string) error {
 	return nil
 }
 
+// shellQuote 对 shell 参数进行安全转义
 func shellQuote(value string) string {
 	if value == "" {
 		return "''"
@@ -657,15 +691,18 @@ func shellQuote(value string) string {
 	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
 }
 
+// capability 构造终端能力描述
 func capability(key, label string, supported bool, description string) domain.TerminalCapability {
 	return domain.TerminalCapability{Key: key, Label: label, Supported: supported, Description: description}
 }
 
+// CommandExists 判断命令是否存在于 PATH 中
 func CommandExists(name string) bool {
 	_, err := exec.LookPath(name)
 	return err == nil
 }
 
+// appExists 判断 macOS 应用是否存在
 func appExists(path string) bool {
 	if runtime.GOOS != "darwin" {
 		return false
@@ -674,6 +711,7 @@ func appExists(path string) bool {
 	return err == nil && info.IsDir()
 }
 
+// executablePath 返回命令的可执行文件路径
 func executablePath(name string, fallback string) string {
 	if name != "" {
 		if path, err := exec.LookPath(name); err == nil {
@@ -683,6 +721,7 @@ func executablePath(name string, fallback string) string {
 	return fallback
 }
 
+// boolConfidence 将布尔值转换为能力置信度
 func boolConfidence(ok bool) string {
 	if ok {
 		return "high"
@@ -690,6 +729,7 @@ func boolConfidence(ok bool) string {
 	return "unavailable"
 }
 
+// availabilityMessage 返回终端可用性描述
 func availabilityMessage(ok bool, yes string, no string) string {
 	if ok {
 		return yes
@@ -697,6 +737,7 @@ func availabilityMessage(ok bool, yes string, no string) string {
 	return no
 }
 
+// runAppleScript 执行 AppleScript 脚本
 func runAppleScript(script string) domain.ActionResult {
 	cmd := exec.Command("osascript", "-e", script)
 	out, err := cmd.CombinedOutput()
@@ -706,6 +747,7 @@ func runAppleScript(script string) domain.ActionResult {
 	return domain.ActionResult{OK: true, Status: "ok", Message: "AppleScript completed."}
 }
 
+// runAppleScriptOutput 执行 AppleScript 并返回输出
 func runAppleScriptOutput(script string) (string, error) {
 	cmd := exec.Command("osascript", "-e", script)
 	out, err := cmd.CombinedOutput()
@@ -715,6 +757,7 @@ func runAppleScriptOutput(script string) (string, error) {
 	return strings.TrimSpace(string(out)), nil
 }
 
+// appleScriptLiteral 将字符串转为 AppleScript 字面量
 func appleScriptLiteral(value string) string {
 	escaped := strings.NewReplacer(
 		"\\", "\\\\",
@@ -725,6 +768,7 @@ func appleScriptLiteral(value string) string {
 	return `"` + escaped + `"`
 }
 
+// ghosttyEnvironmentClause 生成 Ghostty AppleScript 环境变量片段
 func ghosttyEnvironmentClause(values map[string]string) string {
 	if len(values) == 0 {
 		return ""
@@ -757,6 +801,7 @@ on jsonString(valueText)
 end jsonString
 `
 
+// focusDarwinApp 聚焦指定 macOS 应用
 func focusDarwinApp(appName string, processName string) domain.ActionResult {
 	script := fmt.Sprintf(`
 tell application %s to activate
@@ -783,10 +828,12 @@ end tell`, strconv.Quote(appName), strconv.Quote(processName), strconv.Quote(pro
 	return result
 }
 
+// darwinProcessExists 判断 macOS 进程是否存在
 func darwinProcessExists(processName string) bool {
 	return exec.Command("pgrep", "-x", processName).Run() == nil
 }
 
+// darwinProcessPID 返回 macOS 进程 PID
 func darwinProcessPID(processName string) int {
 	out, err := exec.Command("pgrep", "-nx", processName).Output()
 	if err != nil {
@@ -796,6 +843,7 @@ func darwinProcessPID(processName string) int {
 	return pid
 }
 
+// focusDarwinGhosttyTerminal 聚焦 Ghostty 中指定会话的终端窗口
 func focusDarwinGhosttyTerminal(session domain.Session) domain.ActionResult {
 	script := fmt.Sprintf(`
 %s
@@ -882,6 +930,7 @@ end tell`, appleScriptJSONHandlers, appleScriptLiteral(session.Ref.WindowID), ap
 	return domain.ActionResult{OK: true, Status: "focused", Message: "Focused Ghostty session."}
 }
 
+// focusDarwinTerminalAppWindow 聚焦 Terminal.app 中指定窗口
 func focusDarwinTerminalAppWindow(windowID string) domain.ActionResult {
 	script := fmt.Sprintf(`
 tell application "Terminal"
@@ -925,6 +974,7 @@ return "focused"`, appleScriptLiteral(windowID))
 	return domain.ActionResult{OK: false, Status: "failed", Message: out}
 }
 
+// closeDarwinTerminalWindow 关闭 macOS 终端窗口
 func closeDarwinTerminalWindow(session domain.Session) domain.ActionResult {
 	if session.AdapterID == "ghostty" {
 		if session.Ref.WindowID != "" && session.Ref.TabID != "" && session.Ref.TerminalID != "" {
@@ -954,6 +1004,7 @@ func closeDarwinTerminalWindow(session domain.Session) domain.ActionResult {
 	}
 }
 
+// closeDarwinGhosttyTerminal 关闭 Ghostty 中指定会话的终端窗口
 func closeDarwinGhosttyTerminal(windowID string, tabID string, terminalID string) domain.ActionResult {
 	script := fmt.Sprintf(`
 tell application "Ghostty"
@@ -1033,6 +1084,7 @@ end tell`, appleScriptLiteral(windowID), appleScriptLiteral(tabID), appleScriptL
 	return domain.ActionResult{OK: false, Status: "failed", Message: out}
 }
 
+// closeDarwinTerminalAppWindow 关闭 Terminal.app 中指定窗口
 func closeDarwinTerminalAppWindow(windowID string, title string) domain.ActionResult {
 	script := fmt.Sprintf(`
 tell application "Terminal"
@@ -1118,6 +1170,7 @@ end terminateTerminalCloseConfirmation`, appleScriptLiteral(windowID), strconv.Q
 	return domain.ActionResult{OK: false, Status: "unsupported", Message: "No Terminal window matched this session."}
 }
 
+// closeDarwinGhosttyWindow 关闭 Ghostty 指定窗口
 func closeDarwinGhosttyWindow(windowID string) domain.ActionResult {
 	script := fmt.Sprintf(`
 tell application "Ghostty"
@@ -1157,6 +1210,7 @@ end tell`, appleScriptLiteral(windowID))
 	return domain.ActionResult{OK: false, Status: "failed", Message: out}
 }
 
+// closeDarwinGUIWindow 通过辅助功能关闭 macOS GUI 窗口
 func closeDarwinGUIWindow(processName string, title string) domain.ActionResult {
 	script := fmt.Sprintf(`
 tell application "System Events"
@@ -1186,6 +1240,7 @@ return "not-found"`, strconv.Quote(processName), strconv.Quote(processName), str
 	}
 }
 
+// exitFullScreenBestEffort 尽力让 macOS 应用退出全屏
 func exitFullScreenBestEffort(adapterID string) {
 	processName := ""
 	switch adapterID {
@@ -1211,6 +1266,7 @@ end tell`, strconv.Quote(processName), strconv.Quote(processName))
 	_, _ = runAppleScriptOutput(script)
 }
 
+// IsProcessAlive 判断进程是否仍在运行
 func IsProcessAlive(pid int) bool {
 	if pid <= 0 {
 		return false
@@ -1225,10 +1281,12 @@ func IsProcessAlive(pid int) bool {
 	return process.Signal(syscall.Signal(0)) == nil
 }
 
+// SessionID 生成新的会话标识
 func SessionID() string {
 	return fmt.Sprintf("siwap-%d", time.Now().UnixNano())
 }
 
+// WorktreeSafeName 将 worktree 名称转换为安全文件名
 func WorktreeSafeName(name string) string {
 	name = strings.TrimSpace(strings.ToLower(name))
 	name = strings.ReplaceAll(name, string(filepath.Separator), "-")
@@ -1240,6 +1298,7 @@ func WorktreeSafeName(name string) string {
 	return name
 }
 
+// renderArgs 根据模板渲染终端启动参数
 func renderArgs(template string, req LaunchRequest) []string {
 	if strings.TrimSpace(template) == "" {
 		template = "{{command}}"
@@ -1262,6 +1321,7 @@ func renderArgs(template string, req LaunchRequest) []string {
 	return out
 }
 
+// renderWorkingDirArgs 根据工作目录参数模板生成启动参数
 func renderWorkingDirArgs(flag string, req LaunchRequest) []string {
 	flag = strings.TrimSpace(flag)
 	if flag == "" {
@@ -1276,6 +1336,7 @@ func renderWorkingDirArgs(flag string, req LaunchRequest) []string {
 	return []string{flag, req.WorkingDir}
 }
 
+// splitArgs 按 shell 规则拆分参数字符串
 func splitArgs(input string) []string {
 	var out []string
 	var current strings.Builder
@@ -1318,11 +1379,13 @@ func splitArgs(input string) []string {
 	return out
 }
 
+// fileExists 判断文件路径是否存在
 func fileExists(path string) bool {
 	info, err := os.Stat(path)
 	return err == nil && !info.IsDir()
 }
 
+// terminalProfileExists 判断自定义终端配置是否可用
 func terminalProfileExists(path string) bool {
 	path = strings.TrimSpace(path)
 	if path == "" {
@@ -1334,6 +1397,7 @@ func terminalProfileExists(path string) bool {
 	return runtime.GOOS == "darwin" && strings.HasSuffix(strings.ToLower(path), ".app") && appExists(path)
 }
 
+// terminalProfileCommand 构造自定义终端启动命令
 func terminalProfileCommand(path string, args []string) *exec.Cmd {
 	if runtime.GOOS == "darwin" && strings.HasSuffix(strings.ToLower(strings.TrimSpace(path)), ".app") {
 		openArgs := append([]string{path, "--args"}, args...)
@@ -1342,6 +1406,7 @@ func terminalProfileCommand(path string, args []string) *exec.Cmd {
 	return exec.Command(path, args...)
 }
 
+// firstNonEmpty 返回第一个非空字符串
 func firstNonEmpty(value string, fallback string) string {
 	if strings.TrimSpace(value) != "" {
 		return value

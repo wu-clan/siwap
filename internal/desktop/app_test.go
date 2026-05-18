@@ -8,6 +8,7 @@ import (
 	"siwap/internal/session"
 )
 
+// TestSanitizeSettingsSection 验证对应功能行为
 func TestSanitizeSettingsSection(t *testing.T) {
 	for _, section := range []string{"general", "projects", "worktrees", "terminal", "ai"} {
 		if got := sanitizeSettingsSection(section); got != section {
@@ -19,6 +20,7 @@ func TestSanitizeSettingsSection(t *testing.T) {
 	}
 }
 
+// TestParseSettingsTargetSupportsWorktreeCreate 验证对应功能行为
 func TestParseSettingsTargetSupportsWorktreeCreate(t *testing.T) {
 	target := parseSettingsTarget("worktrees:create")
 	if target.Section != "worktrees" || target.Action != "create" {
@@ -32,6 +34,7 @@ func TestParseSettingsTargetSupportsWorktreeCreate(t *testing.T) {
 	}
 }
 
+// TestPositivePanelWidth 验证对应功能行为
 func TestPositivePanelWidth(t *testing.T) {
 	tests := map[int]int{
 		0:   320,
@@ -47,6 +50,7 @@ func TestPositivePanelWidth(t *testing.T) {
 	}
 }
 
+// TestCursorAtExactLeftEdge 验证对应功能行为
 func TestCursorAtExactLeftEdge(t *testing.T) {
 	tests := []struct {
 		name      string
@@ -76,6 +80,7 @@ func TestCursorAtExactLeftEdge(t *testing.T) {
 	}
 }
 
+// TestPointInRect 验证对应功能行为
 func TestPointInRect(t *testing.T) {
 	tests := []struct {
 		name   string
@@ -104,6 +109,7 @@ func TestPointInRect(t *testing.T) {
 	}
 }
 
+// TestParseShortcut 验证对应功能行为
 func TestParseShortcut(t *testing.T) {
 	mods, key, ok := parseShortcut("Control+Command+S")
 	if !ok || len(mods) != 2 || key == 0 {
@@ -120,6 +126,7 @@ func TestParseShortcut(t *testing.T) {
 	}
 }
 
+// TestApplyTemplate 验证对应功能行为
 func TestApplyTemplate(t *testing.T) {
 	request := session.LaunchRequest{
 		HarnessID:    "codex",
@@ -137,6 +144,7 @@ func TestApplyTemplate(t *testing.T) {
 	}
 }
 
+// TestNilWindowActionsDoNotPanic 验证对应功能行为
 func TestNilWindowActionsDoNotPanic(t *testing.T) {
 	app := NewApp()
 	if result := app.ShowWindow(); result.OK || result.Status != "missing" {
@@ -150,6 +158,7 @@ func TestNilWindowActionsDoNotPanic(t *testing.T) {
 	}
 }
 
+// TestCurrentAdaptersApplyDisabledPreference 验证对应功能行为
 func TestCurrentAdaptersApplyDisabledPreference(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	app := NewApp()
@@ -169,6 +178,7 @@ func TestCurrentAdaptersApplyDisabledPreference(t *testing.T) {
 	}
 }
 
+// TestCurrentAdaptersDoNotExposeGenericProcess 验证对应功能行为
 func TestCurrentAdaptersDoNotExposeGenericProcess(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	app := NewApp()
@@ -180,6 +190,7 @@ func TestCurrentAdaptersDoNotExposeGenericProcess(t *testing.T) {
 	}
 }
 
+// TestPrepareLaunchFallsBackFromDisabledDefaultAdapter 验证对应功能行为
 func TestPrepareLaunchFallsBackFromDisabledDefaultAdapter(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	app := NewApp()
@@ -196,6 +207,7 @@ func TestPrepareLaunchFallsBackFromDisabledDefaultAdapter(t *testing.T) {
 	}
 }
 
+// TestPrepareLaunchHonorsExplicitAdapter 验证对应功能行为
 func TestPrepareLaunchHonorsExplicitAdapter(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	app := NewApp()
@@ -211,6 +223,7 @@ func TestPrepareLaunchHonorsExplicitAdapter(t *testing.T) {
 	}
 }
 
+// TestShouldReopenMissingTerminalSkipsUnsupportedAdapters 验证对应功能行为
 func TestShouldReopenMissingTerminalSkipsUnsupportedAdapters(t *testing.T) {
 	custom := domain.Session{AdapterID: "custom-terminal", PID: 123}
 	if shouldReopenMissingTerminal(custom, "unsupported") || shouldReopenMissingTerminal(custom, "gone") {
@@ -227,6 +240,7 @@ func TestShouldReopenMissingTerminalSkipsUnsupportedAdapters(t *testing.T) {
 	}
 }
 
+// TestUpdateHarnessCanDisableAssistantThroughApp 验证对应功能行为
 func TestUpdateHarnessCanDisableAssistantThroughApp(t *testing.T) {
 	t.Setenv("HOME", t.TempDir())
 	app := NewApp()
@@ -240,6 +254,7 @@ func TestUpdateHarnessCanDisableAssistantThroughApp(t *testing.T) {
 	}
 }
 
+// appHarness 构造测试用助手配置
 func appHarness(id string, enabled bool) domain.Harness {
 	return domain.Harness{ID: id, Command: id, Enabled: enabled}
 }

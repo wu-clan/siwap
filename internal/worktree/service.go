@@ -17,6 +17,7 @@ import (
 	"siwap/internal/terminal"
 )
 
+// CreateRequest 表示创建 Git worktree 所需的参数
 type CreateRequest struct {
 	ProjectID   string `json:"projectId"`
 	ProjectPath string `json:"projectPath"`
@@ -26,12 +27,15 @@ type CreateRequest struct {
 	BaseDir     string `json:"baseDir"`
 }
 
+// Service 提供 Git worktree 的查询、创建和删除能力
 type Service struct{}
 
+// NewService 创建 worktree 服务
 func NewService() *Service {
 	return &Service{}
 }
 
+// List 返回指定仓库的 worktree 列表
 func (s *Service) List(project domain.Project) []domain.Worktree {
 	if !isGitRepo(project.Path) {
 		return []domain.Worktree{}
@@ -46,6 +50,7 @@ func (s *Service) List(project domain.Project) []domain.Worktree {
 	return parseWorktrees(project.ID, project.Path, string(out))
 }
 
+// Branches 返回仓库中的本地分支列表
 func (s *Service) Branches(projectPath string) []string {
 	projectPath = strings.TrimSpace(projectPath)
 	if projectPath == "" || !isGitRepo(projectPath) {
@@ -61,6 +66,7 @@ func (s *Service) Branches(projectPath string) []string {
 	return parseBranches(string(out))
 }
 
+// Create 根据请求创建新的 Git worktree
 func (s *Service) Create(req CreateRequest) (domain.Worktree, error) {
 	projectPath := strings.TrimSpace(req.ProjectPath)
 	if projectPath == "" {
@@ -122,6 +128,7 @@ func (s *Service) Create(req CreateRequest) (domain.Worktree, error) {
 	}, nil
 }
 
+// Remove 删除指定 Git worktree
 func (s *Service) Remove(projectPath string, path string, force bool) domain.ActionResult {
 	projectPath = strings.TrimSpace(projectPath)
 	path = strings.TrimSpace(path)
@@ -159,6 +166,7 @@ func (s *Service) Remove(projectPath string, path string, force bool) domain.Act
 	return domain.ActionResult{OK: true, Status: "removed", Message: "Worktree removed."}
 }
 
+// findManagedWorktree 在仓库中查找受管理的 worktree
 func (s *Service) findManagedWorktree(projectPath string, path string) (domain.Worktree, bool) {
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
@@ -175,6 +183,7 @@ func (s *Service) findManagedWorktree(projectPath string, path string) (domain.W
 	return domain.Worktree{}, false
 }
 
+// isGitRepo 判断目录是否为 Git 仓库
 func isGitRepo(path string) bool {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
@@ -183,6 +192,7 @@ func isGitRepo(path string) bool {
 	return err == nil && strings.TrimSpace(string(out)) == "true"
 }
 
+// parseWorktrees 解析 git worktree list --porcelain 输出
 func parseWorktrees(projectID string, projectPath string, data string) []domain.Worktree {
 	var out []domain.Worktree
 	current := domain.Worktree{ProjectID: projectID, Exists: true, Status: "ready"}
@@ -222,6 +232,7 @@ func parseWorktrees(projectID string, projectPath string, data string) []domain.
 	return out
 }
 
+// isProtectedBranch 判断分支是否为受保护的主分支
 func isProtectedBranch(branch string) bool {
 	switch strings.TrimSpace(branch) {
 	case "main", "master":
@@ -231,6 +242,7 @@ func isProtectedBranch(branch string) bool {
 	}
 }
 
+// samePath 判断两个路径是否指向同一位置
 func samePath(a string, b string) bool {
 	a = strings.TrimSpace(a)
 	b = strings.TrimSpace(b)
@@ -253,6 +265,7 @@ func samePath(a string, b string) bool {
 	return filepath.Clean(a) == filepath.Clean(b)
 }
 
+// safeBranch 将分支名称转换为可用于路径的安全名称
 func safeBranch(branch string) string {
 	branch = strings.TrimSpace(branch)
 	branch = strings.ReplaceAll(branch, " ", "-")
@@ -264,6 +277,7 @@ func safeBranch(branch string) string {
 	return branch
 }
 
+// parseBranches 解析 git branch --format 输出
 func parseBranches(data string) []string {
 	seen := map[string]bool{}
 	var out []string
@@ -279,6 +293,7 @@ func parseBranches(data string) []string {
 	return out
 }
 
+// containsBranch 判断分支列表是否包含指定分支
 func containsBranch(branches []string, target string) bool {
 	for _, branch := range branches {
 		if branch == target {
@@ -288,6 +303,7 @@ func containsBranch(branches []string, target string) bool {
 	return false
 }
 
+// defaultBaseBranch 返回仓库默认基准分支
 func defaultBaseBranch(branches []string) string {
 	for _, name := range []string{"main", "master"} {
 		for _, branch := range branches {
@@ -299,6 +315,7 @@ func defaultBaseBranch(branches []string) string {
 	return branches[0]
 }
 
+// isDirty 判断 Git 工作区是否存在未提交修改
 func isDirty(path string) bool {
 	if !isGitRepo(path) {
 		return false
@@ -310,6 +327,7 @@ func isDirty(path string) bool {
 	return err == nil && strings.TrimSpace(string(out)) != ""
 }
 
+// worktreeID 根据 worktree 路径生成稳定 ID
 func worktreeID(path string) string {
 	sum := sha1.Sum([]byte(path))
 	return "worktree-" + hex.EncodeToString(sum[:])[:12]

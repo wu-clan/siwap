@@ -4,6 +4,7 @@ package desktop
 
 import "golang.design/x/hotkey"
 
+// shortcutModifier 将快捷键修饰符转换为 Linux 对应值
 func shortcutModifier(token string) (hotkey.Modifier, bool) {
 	switch token {
 	case "option", "alt":

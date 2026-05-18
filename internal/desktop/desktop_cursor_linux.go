@@ -16,6 +16,7 @@ var linuxCursorTool struct {
 	path string
 }
 
+// cursorPosition 返回 Linux 当前鼠标位置
 func cursorPosition() (int, int, bool) {
 	linuxCursorTool.once.Do(func() {
 		linuxCursorTool.path, _ = exec.LookPath("xdotool")
@@ -33,6 +34,7 @@ func cursorPosition() (int, int, bool) {
 	return parseXDoToolPosition(string(output))
 }
 
+// parseXDoToolPosition 解析 xdotool 输出中的鼠标坐标
 func parseXDoToolPosition(output string) (int, int, bool) {
 	var x, y int
 	var hasX, hasY bool

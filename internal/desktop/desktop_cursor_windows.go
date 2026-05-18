@@ -15,6 +15,7 @@ type winPoint struct {
 
 var getCursorPos = windows.NewLazySystemDLL("user32.dll").NewProc("GetCursorPos")
 
+// cursorPosition 返回 Windows 当前鼠标位置
 func cursorPosition() (int, int, bool) {
 	var point winPoint
 	result, _, _ := getCursorPos.Call(uintptr(unsafe.Pointer(&point)))
