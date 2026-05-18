@@ -16,7 +16,9 @@ export function useAppearance(preferences: Ref<Preferences>) {
   function bindSystemAppearance() {
     if (typeof window === 'undefined' || !window.matchMedia) return
     const media = window.matchMedia('(prefers-color-scheme: dark)')
-    const update = () => { systemDark.value = media.matches }
+    const update = () => {
+      systemDark.value = media.matches
+    }
     update()
     media.addEventListener('change', update)
     offSystemAppearance = () => media.removeEventListener('change', update)
@@ -36,15 +38,22 @@ export function useAppearance(preferences: Ref<Preferences>) {
 
   onMounted(bindSystemAppearance)
   onBeforeUnmount(() => offSystemAppearance?.())
-  watch(currentLanguage, (language) => {
-    setI18nLocale(language)
-  }, { immediate: true })
-  watch([() => preferences.value.appearance, resolvedAppearance], applyDocumentAppearance, { immediate: true })
+  watch(
+    currentLanguage,
+    (language) => {
+      setI18nLocale(language)
+    },
+    { immediate: true },
+  )
+  watch([() => preferences.value.appearance, resolvedAppearance], applyDocumentAppearance, {
+    immediate: true,
+  })
 
   return { systemDark, currentLanguage, resolvedAppearance }
 }
 
 function refSystemDark() {
-  const initial = typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
+  const initial =
+    typeof window !== 'undefined' && window.matchMedia?.('(prefers-color-scheme: dark)').matches
   return ref(Boolean(initial))
 }

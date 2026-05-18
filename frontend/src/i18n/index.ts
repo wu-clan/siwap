@@ -11,7 +11,7 @@ export function normalizeLocale(locale?: string): AppLocale {
 const flatMessageResolver: MessageResolver = (messages: unknown, path: string) => {
   if (!messages || typeof messages !== 'object') return null
   const record = messages as Record<string, unknown>
-  return Object.prototype.hasOwnProperty.call(record, path) ? record[path] as PathValue : null
+  return Object.prototype.hasOwnProperty.call(record, path) ? (record[path] as PathValue) : null
 }
 
 export const i18n = createI18n({

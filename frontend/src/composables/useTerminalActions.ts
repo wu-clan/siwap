@@ -1,5 +1,10 @@
 import type { Ref } from 'vue'
-import { ChooseTerminalExecutable, RemoveTerminalProfile, ReorderTerminalAdapters, UpsertTerminalProfile } from '../../bindings/siwap/internal/desktop/app'
+import {
+  ChooseTerminalExecutable,
+  RemoveTerminalProfile,
+  ReorderTerminalAdapters,
+  UpsertTerminalProfile,
+} from '../../bindings/siwap/internal/desktop/app'
 import { emptyProfile } from '../domain/defaults'
 import type { Preferences, TerminalAdapter, TerminalProfile } from '../domain/types'
 
@@ -20,7 +25,18 @@ export function useTerminalActions(options: {
   terminalDisplayName: (path: string) => string
   confirm: Confirm
 }) {
-  const { preferences, adapters, profileDraft, terminalProfileOpen, run, t, savePreferences, refreshBootstrap, terminalDisplayName, confirm } = options
+  const {
+    preferences,
+    adapters,
+    profileDraft,
+    terminalProfileOpen,
+    run,
+    t,
+    savePreferences,
+    refreshBootstrap,
+    terminalDisplayName,
+    confirm,
+  } = options
 
   async function changeDefaultAdapter(id: string) {
     preferences.value.defaultAdapterId = id
@@ -31,12 +47,16 @@ export function useTerminalActions(options: {
     const disabled = preferences.value.disabledTerminalIds.filter((tid) => tid !== id)
     if (!enabled) disabled.push(id)
     preferences.value.disabledTerminalIds = disabled
-    if (!enabled && preferences.value.defaultAdapterId === id) preferences.value.defaultAdapterId = 'auto'
+    if (!enabled && preferences.value.defaultAdapterId === id)
+      preferences.value.defaultAdapterId = 'auto'
     await savePreferences()
     await refreshBootstrap()
   }
 
-  function updateProfileField(key: keyof TerminalProfile, value: TerminalProfile[keyof TerminalProfile]) {
+  function updateProfileField(
+    key: keyof TerminalProfile,
+    value: TerminalProfile[keyof TerminalProfile],
+  ) {
     ;(profileDraft.value as Record<string, unknown>)[key] = value
   }
 
@@ -51,7 +71,10 @@ export function useTerminalActions(options: {
   }
 
   async function chooseTerminalExecutable() {
-    const path = await run('action.chooseExecutablePath', () => ChooseTerminalExecutable() as unknown as Promise<string>)
+    const path = await run(
+      'action.chooseExecutablePath',
+      () => ChooseTerminalExecutable() as unknown as Promise<string>,
+    )
     if (!path) return
     profileDraft.value.executablePath = path
     if (!profileDraft.value.label.trim()) profileDraft.value.label = terminalDisplayName(path)
@@ -60,20 +83,30 @@ export function useTerminalActions(options: {
   async function saveProfile(profile?: TerminalProfile) {
     const draft = profile ?? profileDraft.value
     // 保存后的自定义终端会立即进入后端适配器列表，可被默认终端或 auto 解析使用
-    const updated = await run('terminal.save', () => UpsertTerminalProfile({ ...draft, enabled: true } as never) as unknown as Promise<TerminalProfile>)
+    const updated = await run(
+      'terminal.save',
+      () =>
+        UpsertTerminalProfile({
+          ...draft,
+          enabled: true,
+        } as never) as unknown as Promise<TerminalProfile>,
+    )
     if (!updated) return
     closeTerminalProfile()
     await refreshBootstrap()
   }
 
   async function removeProfile(id: string) {
-    if (!await confirm(t('confirm.removeTerminalProfile'))) return
+    if (!(await confirm(t('confirm.removeTerminalProfile')))) return
     await run('action.removeTerminal', () => RemoveTerminalProfile(id))
     await refreshBootstrap()
   }
 
   async function reorderTerminals(ids: string[]) {
-    const updated = await run('action.reorderTerminals', () => ReorderTerminalAdapters(ids) as unknown as Promise<TerminalAdapter[]>)
+    const updated = await run(
+      'action.reorderTerminals',
+      () => ReorderTerminalAdapters(ids) as unknown as Promise<TerminalAdapter[]>,
+    )
     if (updated) adapters.value = updated
   }
 

@@ -16,8 +16,23 @@ import ConfirmDialog from './components/common/ConfirmDialog.vue'
 import MainWindow from './windows/MainWindow.vue'
 import SettingsWindow from './windows/SettingsWindow.vue'
 import { settingsSections, type SettingsSection } from './domain/settings'
-import type { ActionResult, Bootstrap, Harness, Preferences, Project, Session, TerminalAdapter, TerminalProfile, Worktree } from './domain/types'
-import { emptyProfile, fallbackPreferences, normalizeHarness, normalizePreferences } from './domain/defaults'
+import type {
+  ActionResult,
+  Bootstrap,
+  Harness,
+  Preferences,
+  Project,
+  Session,
+  TerminalAdapter,
+  TerminalProfile,
+  Worktree,
+} from './domain/types'
+import {
+  emptyProfile,
+  fallbackPreferences,
+  normalizeHarness,
+  normalizePreferences,
+} from './domain/defaults'
 import { useActionRunner } from './composables/useActionRunner'
 import { useAppearance } from './composables/useAppearance'
 import { useAssistantActions } from './composables/useAssistantActions'
@@ -67,31 +82,45 @@ let offWorktrees: (() => void) | undefined
 let preserveSessionSelection: () => void = () => {}
 let confirmResolver: ((value: boolean) => void) | undefined
 
-const isAllProjectsSelected = computed(() => isAllProjectsScope(preferences.value.selectedProjectId))
-const selectedProject = computed(() => isAllProjectsSelected.value ? undefined : projects.value.find((project) => project.id === preferences.value.selectedProjectId))
+const isAllProjectsSelected = computed(() =>
+  isAllProjectsScope(preferences.value.selectedProjectId),
+)
+const selectedProject = computed(() =>
+  isAllProjectsSelected.value
+    ? undefined
+    : projects.value.find((project) => project.id === preferences.value.selectedProjectId),
+)
 const selectedProjectId = computed(() => selectedProject.value?.id ?? '')
-const settingsWorktreeProject = computed(() => projects.value.find((project) => project.id === settingsWorktreeProjectId.value))
-const currentWorktrees = computed(() => isAllProjectsSelected.value ? [] : worktrees.value.filter((item) => item.projectId === selectedProjectId.value))
-const canCreateWorktree = computed(() => Boolean(settingsWorktreeProject.value && worktreeBranches.value.length > 0))
+const settingsWorktreeProject = computed(() =>
+  projects.value.find((project) => project.id === settingsWorktreeProjectId.value),
+)
+const currentWorktrees = computed(() =>
+  isAllProjectsSelected.value
+    ? []
+    : worktrees.value.filter((item) => item.projectId === selectedProjectId.value),
+)
+const canCreateWorktree = computed(() =>
+  Boolean(settingsWorktreeProject.value && worktreeBranches.value.length > 0),
+)
 const enabledHarnesses = computed(() => harnesses.value.filter((h) => h.enabled))
-const launchableAdapters = computed(() => adapters.value.filter((adapter) => adapter.id === 'auto' || adapter.enabled))
-const displayedSessions = computed(() => sessions.value.filter((session) => {
-  if (isAllProjectsSelected.value) return true
-  if (!selectedProjectId.value) return false
-  if (selectedProjectId.value && session.projectId !== selectedProjectId.value) return false
-  const sessionWorktree = session.worktreePath || ''
-  return sessionWorktree === selectedWorktreePath.value
-}))
-const selectedSession = computed(() => displayedSessions.value.find((session) => session.id === selectedSessionId.value))
+const launchableAdapters = computed(() =>
+  adapters.value.filter((adapter) => adapter.id === 'auto' || adapter.enabled),
+)
+const displayedSessions = computed(() =>
+  sessions.value.filter((session) => {
+    if (isAllProjectsSelected.value) return true
+    if (!selectedProjectId.value) return false
+    if (selectedProjectId.value && session.projectId !== selectedProjectId.value) return false
+    const sessionWorktree = session.worktreePath || ''
+    return sessionWorktree === selectedWorktreePath.value
+  }),
+)
+const selectedSession = computed(() =>
+  displayedSessions.value.find((session) => session.id === selectedSessionId.value),
+)
 
-const {
-  basename,
-  projectName,
-  harnessName,
-  terminalName,
-  terminalDisplayName,
-  availabilityText,
-} = useDisplayFormatters({ t, projects, harnesses, adapters, worktrees })
+const { basename, projectName, harnessName, terminalName, terminalDisplayName, availabilityText } =
+  useDisplayFormatters({ t, projects, harnesses, adapters, worktrees })
 
 function confirmAction(description: string, title = '', confirmLabel = '') {
   confirmResolver?.(false)
@@ -116,7 +145,8 @@ async function refreshBootstrap() {
   terminalProfiles.value = data.terminalProfiles ?? []
   adapters.value = data.adapters ?? []
   sessions.value = data.sessions ?? []
-  if (!preferences.value.selectedProjectId) preferences.value.selectedProjectId = ALL_PROJECTS_SCOPE_ID
+  if (!preferences.value.selectedProjectId)
+    preferences.value.selectedProjectId = ALL_PROJECTS_SCOPE_ID
   if (!preferences.value.defaultAdapterId) preferences.value.defaultAdapterId = 'auto'
   await refreshWorktrees()
   await refreshWorktreeBranches()
@@ -129,15 +159,20 @@ async function refreshWorktrees() {
     selectedWorktreePath.value = ''
     return
   }
-  const lists = await Promise.all(projects.value.map(async (project) => {
-    try {
-      return await ListWorktrees(project.id) as unknown as Worktree[]
-    } catch {
-      return []
-    }
-  }))
+  const lists = await Promise.all(
+    projects.value.map(async (project) => {
+      try {
+        return (await ListWorktrees(project.id)) as unknown as Worktree[]
+      } catch {
+        return []
+      }
+    }),
+  )
   worktrees.value = lists.flat()
-  if (selectedWorktreePath.value && !currentWorktrees.value.some((item) => item.path === selectedWorktreePath.value)) {
+  if (
+    selectedWorktreePath.value &&
+    !currentWorktrees.value.some((item) => item.path === selectedWorktreePath.value)
+  ) {
     selectedWorktreePath.value = ''
   }
 }
@@ -154,7 +189,10 @@ async function refreshWorktreeBranches() {
 
 async function syncProjects(next: Project[]) {
   projects.value = next || []
-  if (settingsWorktreeProjectId.value && !projects.value.some((project) => project.id === settingsWorktreeProjectId.value)) {
+  if (
+    settingsWorktreeProjectId.value &&
+    !projects.value.some((project) => project.id === settingsWorktreeProjectId.value)
+  ) {
     settingsWorktreeProjectId.value = ''
   }
   await refreshWorktrees()
@@ -176,19 +214,21 @@ function syncSessions(next: Session[]) {
 async function listWorktreeBranches(projectId: string) {
   if (!projectId) return []
   try {
-    return await ListWorktreeBranches(projectId) as unknown as string[]
+    return (await ListWorktreeBranches(projectId)) as unknown as string[]
   } catch {
     return []
   }
 }
 
 function defaultBaseBranch(branches: string[]) {
-  return branches.find((branch) => branch === 'main')
-    ?? branches.find((branch) => branch.endsWith('/main'))
-    ?? branches.find((branch) => branch === 'master')
-    ?? branches.find((branch) => branch.endsWith('/master'))
-    ?? branches[0]
-    ?? ''
+  return (
+    branches.find((branch) => branch === 'main') ??
+    branches.find((branch) => branch.endsWith('/main')) ??
+    branches.find((branch) => branch === 'master') ??
+    branches.find((branch) => branch.endsWith('/master')) ??
+    branches[0] ??
+    ''
+  )
 }
 
 async function changeSettingsWorktreeProject(projectId: string) {
@@ -197,14 +237,25 @@ async function changeSettingsWorktreeProject(projectId: string) {
   await refreshWorktreeBranches()
 }
 
-const { savePreferences, changePreference, toggleAlwaysOnTop, resetPreferences } = usePreferencesActions({
-  preferences,
-  run,
-  t,
-  confirm: confirmAction,
-})
+const { savePreferences, changePreference, toggleAlwaysOnTop, resetPreferences } =
+  usePreferencesActions({
+    preferences,
+    run,
+    t,
+    confirm: confirmAction,
+  })
 
-const { changeDefaultAdapter, toggleAdapter, updateProfileField, openTerminalProfile, closeTerminalProfile, chooseTerminalExecutable, saveProfile, removeProfile, reorderTerminals } = useTerminalActions({
+const {
+  changeDefaultAdapter,
+  toggleAdapter,
+  updateProfileField,
+  openTerminalProfile,
+  closeTerminalProfile,
+  chooseTerminalExecutable,
+  saveProfile,
+  removeProfile,
+  reorderTerminals,
+} = useTerminalActions({
   preferences,
   adapters,
   profileDraft,
@@ -222,38 +273,40 @@ const { saveAssistant, reorderHarnesses } = useAssistantActions({
   run,
 })
 
-const { chooseProjectDirectory, selectProject, setDefaultProject, removeProject, reorderProjects } = useProjectActions({
-  preferences,
-  projects,
-  selectedWorktreePath,
-  selectedSessionId,
-  settingsSection,
-  run,
-  t,
-  refreshBootstrap,
-  refreshWorktrees,
-  preserveSessionSelection: () => preserveSessionSelection(),
-  openSettings,
-  projectName,
-  confirm: confirmAction,
-})
+const { chooseProjectDirectory, selectProject, setDefaultProject, removeProject, reorderProjects } =
+  useProjectActions({
+    preferences,
+    projects,
+    selectedWorktreePath,
+    selectedSessionId,
+    settingsSection,
+    run,
+    t,
+    refreshBootstrap,
+    refreshWorktrees,
+    preserveSessionSelection: () => preserveSessionSelection(),
+    openSettings,
+    projectName,
+    confirm: confirmAction,
+  })
 
-const { openWorktreeCreate, closeWorktreeCreate, createWorktree, deleteWorktree } = useWorktreeActions({
-  selectedProject: settingsWorktreeProject,
-  selectedProjectId,
-  selectedWorktreePath,
-  branchDraft,
-  baseBranchDraft,
-  worktreePathDraft,
-  worktreeCreateOpen,
-  preferences,
-  actionMessage,
-  run,
-  t,
-  refreshWorktrees,
-  canCreateWorktree,
-  confirm: confirmAction,
-})
+const { openWorktreeCreate, closeWorktreeCreate, createWorktree, deleteWorktree } =
+  useWorktreeActions({
+    selectedProject: settingsWorktreeProject,
+    selectedProjectId,
+    selectedWorktreePath,
+    branchDraft,
+    baseBranchDraft,
+    worktreePathDraft,
+    worktreeCreateOpen,
+    preferences,
+    actionMessage,
+    run,
+    t,
+    refreshWorktrees,
+    canCreateWorktree,
+    confirm: confirmAction,
+  })
 
 const { launchHarness, focusSession, closeSession, clearSessions } = useSessionActions({
   selectedProject,
@@ -271,7 +324,10 @@ const { launchHarness, focusSession, closeSession, clearSessions } = useSessionA
 async function openSettings(section: SettingsSection = settingsSection.value) {
   settingsSection.value = section
   if (!isSettingsWindow.value) {
-    await run('action.openSettings', () => OpenSettingsSection(section) as unknown as Promise<ActionResult>)
+    await run(
+      'action.openSettings',
+      () => OpenSettingsSection(section) as unknown as Promise<ActionResult>,
+    )
     return
   }
   settingsOpen.value = true
@@ -304,11 +360,20 @@ async function openWorktreeCreateFromMain() {
     worktreeCreateOpen.value = true
     return
   }
-  await run('action.openSettings', () => OpenSettingsSection('worktrees:create') as unknown as Promise<ActionResult>)
+  await run(
+    'action.openSettings',
+    () => OpenSettingsSection('worktrees:create') as unknown as Promise<ActionResult>,
+  )
 }
 
 function hasWailsRuntime() {
-  return typeof window !== 'undefined' && Boolean((window as Window & { _wails?: unknown; runtime?: unknown })._wails || (window as Window & { runtime?: unknown }).runtime)
+  return (
+    typeof window !== 'undefined' &&
+    Boolean(
+      (window as Window & { _wails?: unknown; runtime?: unknown })._wails ||
+      (window as Window & { runtime?: unknown }).runtime,
+    )
+  )
 }
 
 function applySettingsPayload(payload?: string) {
@@ -343,13 +408,15 @@ async function initializeApp() {
   if (hasWailsRuntime()) {
     if (isUrlSettingsWindow) {
       isSettingsWindow.value = true
-      if (urlSection && settingsSections.some((item) => item.id === urlSection)) settingsSection.value = urlSection
+      if (urlSection && settingsSections.some((item) => item.id === urlSection))
+        settingsSection.value = urlSection
       if (urlSection === 'worktrees' && urlAction === 'create') worktreeCreateOpen.value = true
     } else {
       const role = await GetWindowRole()
       isSettingsWindow.value = role === 'settings'
-      const initialSection = await GetInitialSettingsSection() as SettingsSection
-      if (settingsSections.some((item) => item.id === initialSection)) settingsSection.value = initialSection
+      const initialSection = (await GetInitialSettingsSection()) as SettingsSection
+      if (settingsSections.some((item) => item.id === initialSection))
+        settingsSection.value = initialSection
     }
     if (isSettingsWindow.value) settingsOpen.value = true
   }
@@ -391,11 +458,14 @@ onMounted(() => {
   }
 })
 
-watch(() => selectedProjectId.value, async () => {
-  selectedWorktreePath.value = ''
-  await refreshWorktrees()
-  preserveSessionSelection()
-})
+watch(
+  () => selectedProjectId.value,
+  async () => {
+    selectedWorktreePath.value = ''
+    await refreshWorktrees()
+    preserveSessionSelection()
+  },
+)
 
 watch(settingsSection, (section) => {
   if (section !== 'worktrees') worktreeCreateOpen.value = false

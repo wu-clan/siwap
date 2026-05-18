@@ -19,7 +19,12 @@ const emit = defineEmits<{
 const { t } = useI18n({ useScope: 'global' })
 
 const localItems = ref<Project[]>([...props.projects])
-watch(() => props.projects, (v) => { localItems.value = [...v] })
+watch(
+  () => props.projects,
+  (v) => {
+    localItems.value = [...v]
+  },
+)
 
 const draggedId = ref('')
 let lastSwapTarget = ''
@@ -61,7 +66,9 @@ function onDragEnd() {
 <template>
   <section class="settings-page settings-page-layout">
     <div class="settings-actions">
-      <Button variant="default" @click="emit('choose')">{{ t('project.chooseLocalFolder') }}</Button>
+      <Button variant="default" @click="emit('choose')">{{
+        t('project.chooseLocalFolder')
+      }}</Button>
     </div>
     <div class="native-list">
       <article
@@ -71,7 +78,7 @@ function onDragEnd() {
         :class="[
           'native-row project-item',
           project.isDefault ? 'border-primary/50 bg-primary/5' : '',
-          draggedId === project.id ? 'opacity-30 scale-[0.97]' : ''
+          draggedId === project.id ? 'opacity-30 scale-[0.97]' : '',
         ]"
         @dragstart="onDragStart($event, project.id)"
         @dragover="onDragOver($event, project.id)"
@@ -83,8 +90,12 @@ function onDragEnd() {
           <small>{{ project.path }}</small>
         </div>
         <div class="row-actions row-actions-layout">
-          <Button v-if="!project.isDefault" @click="emit('set-default', project.id)">{{ t('project.setDefault') }}</Button>
-          <Button variant="destructive" @click="emit('remove', project)">{{ t('common.remove') }}</Button>
+          <Button v-if="!project.isDefault" @click="emit('set-default', project.id)">{{
+            t('project.setDefault')
+          }}</Button>
+          <Button variant="destructive" @click="emit('remove', project)">{{
+            t('common.remove')
+          }}</Button>
         </div>
       </article>
     </div>

@@ -17,7 +17,10 @@ export default defineConfig({
     },
   },
   fmt: {
+    ignorePatterns: ['dist/**', 'bindings/**'],
+    semi: false,
     singleQuote: true,
+    sortPackageJson: false,
   },
   lint: {
     ignorePatterns: ['dist/**', 'bindings/**'],

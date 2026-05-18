@@ -2,7 +2,14 @@
 import MainContextStack from '../components/main/MainContextStack.vue'
 import AssistantLauncher from '../components/main/AssistantLauncher.vue'
 import SessionList from '../components/main/SessionList.vue'
-import type { Harness, Preferences, Project, Session, TerminalAdapter, Worktree } from '../domain/types'
+import type {
+  Harness,
+  Preferences,
+  Project,
+  Session,
+  TerminalAdapter,
+  Worktree,
+} from '../domain/types'
 
 defineProps<{
   preferences: Preferences

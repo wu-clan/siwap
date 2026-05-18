@@ -6,7 +6,13 @@ import { useI18n } from 'vue-i18n'
 import { Button } from '../../components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '../../components/ui/form'
 import { Input } from '../../components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
 import { createWorktreeFormSchema, type WorktreeFormValues } from '../../domain/formValidation'
 import type { Preferences, Project, Worktree } from '../../domain/types'
 
@@ -42,7 +48,15 @@ const { t } = useI18n({ useScope: 'global' })
 
 const worktreeSchema = computed(() => toTypedSchema(createWorktreeFormSchema(t)))
 const baseBranchOptions = computed(() => props.worktreeBranches)
-const defaultBaseBranch = computed(() => props.worktreeBranches.find((branch) => branch === 'main') ?? props.worktreeBranches.find((branch) => branch.endsWith('/main')) ?? props.worktreeBranches.find((branch) => branch === 'master') ?? props.worktreeBranches.find((branch) => branch.endsWith('/master')) ?? props.worktreeBranches[0] ?? '')
+const defaultBaseBranch = computed(
+  () =>
+    props.worktreeBranches.find((branch) => branch === 'main') ??
+    props.worktreeBranches.find((branch) => branch.endsWith('/main')) ??
+    props.worktreeBranches.find((branch) => branch === 'master') ??
+    props.worktreeBranches.find((branch) => branch.endsWith('/master')) ??
+    props.worktreeBranches[0] ??
+    '',
+)
 const worktreeForm = useForm<WorktreeFormValues>({
   validationSchema: worktreeSchema,
   initialValues: {
@@ -52,16 +66,19 @@ const worktreeForm = useForm<WorktreeFormValues>({
   },
 })
 
-watch(() => props.worktreeCreateOpen, (open) => {
-  if (!open) return
-  worktreeForm.resetForm({
-    values: {
-      branch: props.branchDraft,
-      baseBranch: props.baseBranchDraft || defaultBaseBranch.value,
-      path: props.worktreePathDraft,
-    },
-  })
-})
+watch(
+  () => props.worktreeCreateOpen,
+  (open) => {
+    if (!open) return
+    worktreeForm.resetForm({
+      values: {
+        branch: props.branchDraft,
+        baseBranch: props.baseBranchDraft || defaultBaseBranch.value,
+        path: props.worktreePathDraft,
+      },
+    })
+  },
+)
 
 const filteredWorktrees = computed(() => {
   if (!props.settingsWorktreeProjectId) return props.allWorktrees
@@ -84,7 +101,9 @@ function canRemoveWorktree(item: Worktree) {
 
 function isDefaultWorktree(item: Worktree) {
   if (item.projectId !== props.preferences.selectedProjectId) return false
-  return props.selectedWorktreePath === item.path || (item.isMain && props.selectedWorktreePath === '')
+  return (
+    props.selectedWorktreePath === item.path || (item.isMain && props.selectedWorktreePath === '')
+  )
 }
 
 function canSetDefaultWorktree(item: Worktree) {
@@ -107,8 +126,17 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
   <section class="settings-page settings-page-layout">
     <template v-if="!worktreeCreateOpen">
       <div class="form-grid">
-        <div class="field-label">{{ t('nav.projects') }}
-          <Select :model-value="settingsWorktreeProjectId || '__all'" @update:model-value="emit('update-settings-worktree-project', String($event) === '__all' ? '' : String($event))">
+        <div class="field-label">
+          {{ t('nav.projects') }}
+          <Select
+            :model-value="settingsWorktreeProjectId || '__all'"
+            @update:model-value="
+              emit(
+                'update-settings-worktree-project',
+                String($event) === '__all' ? '' : String($event),
+              )
+            "
+          >
             <SelectTrigger><SelectValue /></SelectTrigger>
             <SelectContent>
               <SelectItem value="__all">{{ t('worktree.allProjects') }}</SelectItem>
@@ -120,7 +148,9 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
         </div>
       </div>
       <div class="settings-actions">
-        <Button variant="default" :disabled="!canCreateWorktree" @click="emit('open-create')">{{ t('worktree.create') }}</Button>
+        <Button variant="default" :disabled="!canCreateWorktree" @click="emit('open-create')">{{
+          t('worktree.create')
+        }}</Button>
       </div>
       <div class="native-list">
         <article
@@ -128,24 +158,34 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
           :key="item.id"
           :class="[
             'native-row transition-all',
-            isDefaultWorktree(item) ? 'border-primary/50 bg-primary/5' : ''
+            isDefaultWorktree(item) ? 'border-primary/50 bg-primary/5' : '',
           ]"
         >
           <div>
             <strong>{{ item.branch || 'detached' }}</strong>
-            <span v-if="isDefaultWorktree(item)" class="status-pill">{{ t('common.default') }}</span>
+            <span v-if="isDefaultWorktree(item)" class="status-pill">{{
+              t('common.default')
+            }}</span>
             <small>{{ item.path }}</small>
-            <small v-if="item.dirty" class="text-destructive text-xs">{{ t('worktree.modified') }}</small>
+            <small v-if="item.dirty" class="text-destructive text-xs">{{
+              t('worktree.modified')
+            }}</small>
           </div>
           <div class="row-actions row-actions-layout">
+            <Button v-if="canSetDefaultWorktree(item)" @click="setDefaultWorktree(item)">{{
+              t('worktree.setDefault')
+            }}</Button>
             <Button
-              v-if="canSetDefaultWorktree(item)"
-              @click="setDefaultWorktree(item)"
-            >{{ t('worktree.setDefault') }}</Button>
-            <Button v-if="canRemoveWorktree(item)" variant="destructive" @click="emit('delete', item)">{{ t('common.delete') }}</Button>
+              v-if="canRemoveWorktree(item)"
+              variant="destructive"
+              @click="emit('delete', item)"
+              >{{ t('common.delete') }}</Button
+            >
           </div>
         </article>
-        <p v-if="filteredWorktrees.length === 0" class="settings-empty">{{ t('worktree.empty') }}</p>
+        <p v-if="filteredWorktrees.length === 0" class="settings-empty">
+          {{ t('worktree.empty') }}
+        </p>
       </div>
     </template>
     <template v-else>
@@ -158,7 +198,12 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
                 <Input
                   :model-value="value"
                   placeholder="feature/example"
-                  @update:model-value="(next) => { handleChange(next); emit('update-branch-draft', String(next)) }"
+                  @update:model-value="
+                    (next) => {
+                      handleChange(next)
+                      emit('update-branch-draft', String(next))
+                    }
+                  "
                   @blur="handleBlur"
                 />
               </FormControl>
@@ -170,7 +215,13 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
               <FormLabel>{{ t('worktree.baseBranch') }}</FormLabel>
               <Select
                 :model-value="String(value || defaultBaseBranch)"
-                @update:model-value="(next) => { const value = String(next); handleChange(value); emit('update-base-branch-draft', value) }"
+                @update:model-value="
+                  (next) => {
+                    const value = String(next)
+                    handleChange(value)
+                    emit('update-base-branch-draft', value)
+                  }
+                "
               >
                 <FormControl>
                   <SelectTrigger><SelectValue /></SelectTrigger>
@@ -191,7 +242,12 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
                 <Input
                   :model-value="value"
                   :placeholder="t('worktree.defaultPathHint')"
-                  @update:model-value="(next) => { handleChange(next); emit('update-worktree-path-draft', String(next)) }"
+                  @update:model-value="
+                    (next) => {
+                      handleChange(next)
+                      emit('update-worktree-path-draft', String(next))
+                    }
+                  "
                   @blur="handleBlur"
                 />
               </FormControl>
@@ -200,7 +256,9 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
           </FormField>
         </div>
         <div class="settings-actions">
-          <Button variant="default" :disabled="!canCreateWorktree" type="submit">{{ t('common.create') }}</Button>
+          <Button variant="default" :disabled="!canCreateWorktree" type="submit">{{
+            t('common.create')
+          }}</Button>
           <Button type="button" @click="emit('close-create')">{{ t('common.cancel') }}</Button>
         </div>
       </form>

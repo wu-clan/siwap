@@ -20,7 +20,11 @@ defineProps<{
     :style="{ '--assistant-color': harness.tint }"
     aria-hidden="true"
   >
-    <svg v-if="assistantLogoPaths(harness).length" :viewBox="assistantLogoViewBox(harness)" role="img">
+    <svg
+      v-if="assistantLogoPaths(harness).length"
+      :viewBox="assistantLogoViewBox(harness)"
+      role="img"
+    >
       <path
         v-for="(path, index) in assistantLogoPaths(harness)"
         :key="index"

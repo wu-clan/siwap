@@ -22,7 +22,22 @@ export function useWorktreeActions(options: {
   canCreateWorktree: ComputedRef<boolean>
   confirm: Confirm
 }) {
-  const { selectedProject, selectedProjectId, selectedWorktreePath, branchDraft, baseBranchDraft, worktreePathDraft, worktreeCreateOpen, preferences, actionMessage, run, t, refreshWorktrees, canCreateWorktree, confirm } = options
+  const {
+    selectedProject,
+    selectedProjectId,
+    selectedWorktreePath,
+    branchDraft,
+    baseBranchDraft,
+    worktreePathDraft,
+    worktreeCreateOpen,
+    preferences,
+    actionMessage,
+    run,
+    t,
+    refreshWorktrees,
+    canCreateWorktree,
+    confirm,
+  } = options
 
   function removeDirtyWorktreePrompt(name: string) {
     return t('confirm.removeDirtyWorktree', { name })
@@ -58,21 +73,29 @@ export function useWorktreeActions(options: {
       actionMessage.value = t('worktree.gitRequired')
       return
     }
-    const created = await run('worktree.create', () => CreateWorktree({
-      projectId: selectedProject.value!.id,
-      projectPath: selectedProject.value!.path,
-      branch: branchDraft.value,
-      baseBranch: baseBranchDraft.value,
-      path: worktreePathDraft.value,
-      baseDir: preferences.value.worktreeLocation === 'custom' ? preferences.value.worktreeBaseDir : '',
-    }) as unknown as Promise<Worktree>)
+    const created = await run(
+      'worktree.create',
+      () =>
+        CreateWorktree({
+          projectId: selectedProject.value!.id,
+          projectPath: selectedProject.value!.path,
+          branch: branchDraft.value,
+          baseBranch: baseBranchDraft.value,
+          path: worktreePathDraft.value,
+          baseDir:
+            preferences.value.worktreeLocation === 'custom'
+              ? preferences.value.worktreeBaseDir
+              : '',
+        }) as unknown as Promise<Worktree>,
+    )
     if (!created) return
     branchDraft.value = ''
     baseBranchDraft.value = ''
     worktreePathDraft.value = ''
     worktreeCreateOpen.value = false
     await refreshWorktrees()
-    if (selectedProjectId.value === selectedProject.value.id) selectedWorktreePath.value = created.path
+    if (selectedProjectId.value === selectedProject.value.id)
+      selectedWorktreePath.value = created.path
     actionMessage.value = t('worktree.createdSelectFromMain')
   }
 
@@ -83,9 +106,12 @@ export function useWorktreeActions(options: {
     }
     const force = item.dirty
     const name = item.branch || item.path
-    if (force && !await confirm(removeDirtyWorktreePrompt(name))) return
-    if (!force && !await confirm(removeWorktreePrompt(name))) return
-    const result = await run('action.deleteWorktree', () => RemoveWorktree(item.projectId, item.path, force) as unknown as Promise<ActionResult>)
+    if (force && !(await confirm(removeDirtyWorktreePrompt(name)))) return
+    if (!force && !(await confirm(removeWorktreePrompt(name)))) return
+    const result = await run(
+      'action.deleteWorktree',
+      () => RemoveWorktree(item.projectId, item.path, force) as unknown as Promise<ActionResult>,
+    )
     if (result) actionMessage.value = result.message
     if (selectedWorktreePath.value === item.path) selectedWorktreePath.value = ''
     await refreshWorktrees()

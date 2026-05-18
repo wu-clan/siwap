@@ -6,6 +6,6 @@ export const settingsSections = [
   { id: 'ai', label: 'nav.aiAssistants' },
 ] as const
 
-export type SettingsSection = typeof settingsSections[number]['id']
-export type SettingsSectionItem = typeof settingsSections[number]
+export type SettingsSection = (typeof settingsSections)[number]['id']
+export type SettingsSectionItem = (typeof settingsSections)[number]
 export type DragKind = 'project' | 'terminal' | 'harness'

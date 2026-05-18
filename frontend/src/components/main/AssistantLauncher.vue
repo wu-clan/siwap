@@ -36,6 +36,11 @@ const { t } = useI18n({ useScope: 'global' })
         <AssistantLogo :harness="harness" />
       </Button>
     </div>
-    <Button v-if="enabledHarnesses.length === 0" class="empty-action" @click="emit('open-settings-ai')">{{ t('ai.enableAssistants') }}</Button>
+    <Button
+      v-if="enabledHarnesses.length === 0"
+      class="empty-action"
+      @click="emit('open-settings-ai')"
+      >{{ t('ai.enableAssistants') }}</Button
+    >
   </section>
 </template>

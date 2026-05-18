@@ -2,7 +2,13 @@
 import { useI18n } from 'vue-i18n'
 import { Button } from '../../components/ui/button'
 import { Input } from '../../components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
 import { Switch } from '../../components/ui/switch'
 import type { Preferences } from '../../domain/types'
 
@@ -27,8 +33,12 @@ function changeStringPreference(key: keyof Preferences, event: Event) {
 <template>
   <section class="settings-page settings-page-layout">
     <div class="form-grid two">
-      <label class="field-label">{{ t('settings.language') }}
-        <Select :model-value="preferences.language" @update:model-value="emit('change-preference', 'language', String($event))">
+      <label class="field-label"
+        >{{ t('settings.language') }}
+        <Select
+          :model-value="preferences.language"
+          @update:model-value="emit('change-preference', 'language', String($event))"
+        >
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="zh-CN">{{ t('language.chinese') }}</SelectItem>
@@ -36,8 +46,12 @@ function changeStringPreference(key: keyof Preferences, event: Event) {
           </SelectContent>
         </Select>
       </label>
-      <label class="field-label">{{ t('settings.appearance') }}
-        <Select :model-value="preferences.appearance" @update:model-value="emit('change-preference', 'appearance', String($event))">
+      <label class="field-label"
+        >{{ t('settings.appearance') }}
+        <Select
+          :model-value="preferences.appearance"
+          @update:model-value="emit('change-preference', 'appearance', String($event))"
+        >
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
             <SelectItem value="system">{{ t('appearance.system') }}</SelectItem>
@@ -46,13 +60,30 @@ function changeStringPreference(key: keyof Preferences, event: Event) {
           </SelectContent>
         </Select>
       </label>
-      <label class="field-label">{{ t('settings.summonShortcut') }}
-        <Input :value="preferences.globalShortcut" placeholder="Control+Command+S" @change="changeStringPreference('globalShortcut', $event)" />
+      <label class="field-label"
+        >{{ t('settings.summonShortcut') }}
+        <Input
+          :value="preferences.globalShortcut"
+          placeholder="Control+Command+S"
+          @change="changeStringPreference('globalShortcut', $event)"
+        />
       </label>
     </div>
     <div class="toggle-list">
-      <label><Switch :model-value="preferences.alwaysOnTop" @update:model-value="emit('toggle-always-on-top')" /> {{ t('settings.alwaysOnTop') }}</label>
-      <label><Switch :model-value="preferences.autohideOnBlur" @update:model-value="emit('change-preference', 'autohideOnBlur', $event)" /> {{ t('settings.hideOnBlur') }}</label>
+      <label
+        ><Switch
+          :model-value="preferences.alwaysOnTop"
+          @update:model-value="emit('toggle-always-on-top')"
+        />
+        {{ t('settings.alwaysOnTop') }}</label
+      >
+      <label
+        ><Switch
+          :model-value="preferences.autohideOnBlur"
+          @update:model-value="emit('change-preference', 'autohideOnBlur', $event)"
+        />
+        {{ t('settings.hideOnBlur') }}</label
+      >
     </div>
     <div class="settings-actions">
       <Button @click="emit('reset-window')">{{ t('settings.resetWindowPosition') }}</Button>

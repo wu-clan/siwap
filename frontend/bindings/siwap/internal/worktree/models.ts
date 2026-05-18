@@ -5,6 +5,9 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+/**
+ * CreateRequest 表示创建 Git worktree 所需的参数
+ */
 export class CreateRequest {
     "projectId": string;
     "projectPath": string;

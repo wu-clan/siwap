@@ -5,6 +5,9 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+/**
+ * LaunchRequest 表示创建终端会话时需要的参数
+ */
 export class LaunchRequest {
     "harnessId": string;
     "projectId": string;

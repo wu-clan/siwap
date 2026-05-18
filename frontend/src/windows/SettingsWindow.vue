@@ -6,7 +6,14 @@ import ProjectsSettings from '../features/settings/ProjectsSettings.vue'
 import TerminalSettings from '../features/settings/TerminalSettings.vue'
 import WorktreesSettings from '../features/settings/WorktreesSettings.vue'
 import type { SettingsSection, SettingsSectionItem } from '../domain/settings'
-import type { Harness, Preferences, Project, TerminalAdapter, TerminalProfile, Worktree } from '../domain/types'
+import type {
+  Harness,
+  Preferences,
+  Project,
+  TerminalAdapter,
+  TerminalProfile,
+  Worktree,
+} from '../domain/types'
 
 defineProps<{
   visible: boolean
@@ -61,7 +68,10 @@ const emit = defineEmits<{
   'choose-terminal-executable': []
   'save-terminal-profile': [profile: TerminalProfile]
   'remove-terminal-profile': [id: string]
-  'update-profile-field': [key: keyof TerminalProfile, value: TerminalProfile[keyof TerminalProfile]]
+  'update-profile-field': [
+    key: keyof TerminalProfile,
+    value: TerminalProfile[keyof TerminalProfile],
+  ]
   'save-assistant': [harness: Harness]
   'reorder-harnesses': [ids: string[]]
 }>()
@@ -146,6 +156,5 @@ const emit = defineEmits<{
       @save="emit('save-assistant', $event)"
       @reorder="emit('reorder-harnesses', $event)"
     />
-
   </SettingsDialog>
 </template>

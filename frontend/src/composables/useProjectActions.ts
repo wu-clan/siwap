@@ -1,5 +1,11 @@
 import type { Ref } from 'vue'
-import { ChooseProjectDirectory, RemoveProject, ReorderProjects, SelectProject, SetDefaultProject } from '../../bindings/siwap/internal/desktop/app'
+import {
+  ChooseProjectDirectory,
+  RemoveProject,
+  ReorderProjects,
+  SelectProject,
+  SetDefaultProject,
+} from '../../bindings/siwap/internal/desktop/app'
 import type { Preferences, Project } from '../domain/types'
 import type { SettingsSection } from '../domain/settings'
 import { ALL_PROJECTS_SCOPE_ID, isAllProjectsScope } from '../domain/projectScope'
@@ -23,14 +29,31 @@ export function useProjectActions(options: {
   projectName: (project: Project) => string
   confirm: Confirm
 }) {
-  const { preferences, projects, selectedWorktreePath, selectedSessionId, settingsSection, run, t, refreshBootstrap, refreshWorktrees, preserveSessionSelection, openSettings, projectName, confirm } = options
+  const {
+    preferences,
+    projects,
+    selectedWorktreePath,
+    selectedSessionId,
+    settingsSection,
+    run,
+    t,
+    refreshBootstrap,
+    refreshWorktrees,
+    preserveSessionSelection,
+    openSettings,
+    projectName,
+    confirm,
+  } = options
 
   function removeProjectPrompt(name: string) {
     return t('confirm.removeProject', { name })
   }
 
   async function chooseProjectDirectory() {
-    const created = await run('action.addProject', () => ChooseProjectDirectory() as unknown as Promise<Project>)
+    const created = await run(
+      'action.addProject',
+      () => ChooseProjectDirectory() as unknown as Promise<Project>,
+    )
     if (!created) return
     await refreshBootstrap()
     settingsSection.value = 'projects'
@@ -41,7 +64,10 @@ export function useProjectActions(options: {
       void openSettings('projects')
       return
     }
-    const selected = await run('action.switchProject', () => SelectProject(id) as unknown as Promise<Project>)
+    const selected = await run(
+      'action.switchProject',
+      () => SelectProject(id) as unknown as Promise<Project>,
+    )
     if (isAllProjectsScope(id)) {
       preferences.value.selectedProjectId = ALL_PROJECTS_SCOPE_ID
     } else {
@@ -55,12 +81,15 @@ export function useProjectActions(options: {
   }
 
   async function setDefaultProject(id: string) {
-    await run('action.setDefaultProject', () => SetDefaultProject(id) as unknown as Promise<Project>)
+    await run(
+      'action.setDefaultProject',
+      () => SetDefaultProject(id) as unknown as Promise<Project>,
+    )
     await refreshBootstrap()
   }
 
   async function removeProject(project: Project) {
-    if (!await confirm(removeProjectPrompt(projectName(project)))) return
+    if (!(await confirm(removeProjectPrompt(projectName(project))))) return
     await run('action.removeProject', () => RemoveProject(project.id))
     if (preferences.value.selectedProjectId === project.id) {
       selectedWorktreePath.value = ''
@@ -70,9 +99,18 @@ export function useProjectActions(options: {
   }
 
   async function reorderProjects(ids: string[]) {
-    const updated = await run('action.reorderProjects', () => ReorderProjects(ids) as unknown as Promise<Project[]>)
+    const updated = await run(
+      'action.reorderProjects',
+      () => ReorderProjects(ids) as unknown as Promise<Project[]>,
+    )
     if (updated) projects.value = updated
   }
 
-  return { chooseProjectDirectory, selectProject, setDefaultProject, removeProject, reorderProjects }
+  return {
+    chooseProjectDirectory,
+    selectProject,
+    setDefaultProject,
+    removeProject,
+    reorderProjects,
+  }
 }

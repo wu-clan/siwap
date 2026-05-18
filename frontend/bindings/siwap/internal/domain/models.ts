@@ -5,6 +5,9 @@
 // @ts-ignore: Unused imports
 import { Create as $Create } from "@wailsio/runtime";
 
+/**
+ * ActionResult 表示后端动作执行结果
+ */
 export class ActionResult {
     "ok": boolean;
     "status": string;
@@ -34,6 +37,9 @@ export class ActionResult {
     }
 }
 
+/**
+ * AppSummary 描述应用的基础信息和能力范围
+ */
 export class AppSummary {
     "name": string;
     "stack": string[];
@@ -79,6 +85,9 @@ export class AppSummary {
     }
 }
 
+/**
+ * Bootstrap 表示前端启动时需要的一次性数据
+ */
 export class Bootstrap {
     "version": string;
     "summary": AppSummary;
@@ -160,6 +169,9 @@ export class Bootstrap {
     }
 }
 
+/**
+ * Harness 表示一个可启动的 AI 助手配置
+ */
 export class Harness {
     "id": string;
     "label": string;
@@ -225,6 +237,9 @@ export class Harness {
     }
 }
 
+/**
+ * HarnessFlag 表示助手命令支持的可配置参数
+ */
 export class HarnessFlag {
     "key": string;
     "label": string;
@@ -270,6 +285,9 @@ export class HarnessFlag {
     }
 }
 
+/**
+ * Preferences 表示用户偏好设置
+ */
 export class Preferences {
     "selectedProjectId": string;
     "defaultProjectId": string;
@@ -383,6 +401,9 @@ export class Preferences {
     }
 }
 
+/**
+ * Project 表示一个用户项目目录
+ */
 export class Project {
     "id": string;
     "path": string;
@@ -414,6 +435,9 @@ export class Project {
     }
 }
 
+/**
+ * Session 表示一次助手终端会话
+ */
 export class Session {
     "id": string;
     "harnessId": string;
@@ -495,6 +519,9 @@ export class Session {
     }
 }
 
+/**
+ * TerminalAdapter 描述一个可用终端适配器
+ */
 export class TerminalAdapter {
     "id": string;
     "label": string;
@@ -550,6 +577,9 @@ export class TerminalAdapter {
     }
 }
 
+/**
+ * TerminalCapability 描述终端适配器的一项能力
+ */
 export class TerminalCapability {
     "key": string;
     "label": string;
@@ -583,6 +613,9 @@ export class TerminalCapability {
     }
 }
 
+/**
+ * TerminalProfile 表示用户自定义终端配置
+ */
 export class TerminalProfile {
     "id": string;
     "label": string;
@@ -632,6 +665,9 @@ export class TerminalProfile {
     }
 }
 
+/**
+ * TerminalSessionRef 保存终端会话的可追踪引用信息
+ */
 export class TerminalSessionRef {
     "adapterId": string;
     "platform": string;
@@ -698,6 +734,9 @@ export class TerminalSessionRef {
     }
 }
 
+/**
+ * WindowState 表示桌面窗口状态
+ */
 export class WindowState {
     "width": number;
     "height": number;
@@ -731,6 +770,9 @@ export class WindowState {
     }
 }
 
+/**
+ * Worktree 表示一个 Git worktree
+ */
 export class Worktree {
     "id": string;
     "projectId": string;

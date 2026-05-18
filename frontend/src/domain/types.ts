@@ -31,7 +31,14 @@ export type TerminalProfile = {
   platform: string
   enabled: boolean
 }
-export type HarnessFlag = { key: string; label: string; type: string; commandFlag: string; default: string; options: string[] }
+export type HarnessFlag = {
+  key: string
+  label: string
+  type: string
+  commandFlag: string
+  default: string
+  options: string[]
+}
 export type Harness = {
   id: string
   label: string
@@ -44,8 +51,19 @@ export type Harness = {
   flags: Record<string, string>
   flagOptions: HarnessFlag[]
 }
-export type Project = { id: string; path: string; label?: string; isDefault: boolean; lastUsedAt?: string }
-export type TerminalCapability = { key: string; label: string; supported: boolean; description: string }
+export type Project = {
+  id: string
+  path: string
+  label?: string
+  isDefault: boolean
+  lastUsedAt?: string
+}
+export type TerminalCapability = {
+  key: string
+  label: string
+  supported: boolean
+  description: string
+}
 export type TerminalAdapter = {
   id: string
   label: string

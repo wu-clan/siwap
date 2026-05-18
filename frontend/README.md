@@ -6,6 +6,7 @@ Vue 3 + TypeScript frontend for the Siwap desktop app.
 
 ```sh
 pnpm install
+pnpm fmt
 pnpm build
 ```
 

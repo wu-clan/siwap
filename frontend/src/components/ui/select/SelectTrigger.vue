@@ -14,12 +14,14 @@ const delegatedProps = reactiveOmit(props, 'class')
   <SelectTrigger
     data-slot="select-trigger"
     v-bind="delegatedProps"
-    :class="cn(
-      'border-input bg-background dark:bg-input/30 dark:hover:bg-input/50 flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground',
-      'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
-      '[&>span]:min-w-0 [&>span]:truncate',
-      props.class,
-    )"
+    :class="
+      cn(
+        'border-input bg-background dark:bg-input/30 dark:hover:bg-input/50 flex h-9 w-full min-w-0 items-center justify-between gap-2 rounded-md border px-3 py-2 text-sm whitespace-nowrap shadow-xs transition-[color,box-shadow] outline-none disabled:cursor-not-allowed disabled:opacity-50 data-[placeholder]:text-muted-foreground',
+        'focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]',
+        '[&>span]:min-w-0 [&>span]:truncate',
+        props.class,
+      )
+    "
   >
     <slot />
     <SelectIcon as-child>

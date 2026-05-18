@@ -5,11 +5,11 @@
   "type": "module",
   "scripts": {
     "dev": "vp dev",
-    "build": "vue-tsc --noEmit && vp build",
-    "preview": "vp preview",
-    "build:dev": "vue-tsc --noEmit && vp build --minify false --mode development",
-    "lint": "vp lint src",
-    "check": "vp check --no-fmt src index.html package.json tsconfig.json vite.config.ts"
+    "check": "vp check",
+    "lint": "vp lint",
+    "fmt": "vp fmt",
+    "build": "vp build",
+    "preview": "vp preview"
   },
   "dependencies": {
     "@radix-icons/vue": "^1.0.0",

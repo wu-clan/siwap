@@ -6,9 +6,18 @@ import { useI18n } from 'vue-i18n'
 import { Button } from '../../components/ui/button'
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '../../components/ui/form'
 import { Input } from '../../components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../../components/ui/select'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../../components/ui/select'
 import { Switch } from '../../components/ui/switch'
-import { createTerminalProfileFormSchema, type TerminalProfileFormValues } from '../../domain/formValidation'
+import {
+  createTerminalProfileFormSchema,
+  type TerminalProfileFormValues,
+} from '../../domain/formValidation'
 import type { Preferences, TerminalAdapter, TerminalProfile } from '../../domain/types'
 
 const props = defineProps<{
@@ -29,12 +38,15 @@ const emit = defineEmits<{
   'save-profile': [profile: TerminalProfile]
   'remove-profile': [id: string]
   reorder: [ids: string[]]
-  'update-profile-field': [key: keyof TerminalProfile, value: TerminalProfile[keyof TerminalProfile]]
+  'update-profile-field': [
+    key: keyof TerminalProfile,
+    value: TerminalProfile[keyof TerminalProfile],
+  ]
 }>()
 
 const { t } = useI18n({ useScope: 'global' })
 
-const draggableAdapters = computed(() => props.adapters.filter(a => a.id !== 'auto'))
+const draggableAdapters = computed(() => props.adapters.filter((a) => a.id !== 'auto'))
 const localItems = ref<TerminalAdapter[]>([...draggableAdapters.value])
 const terminalProfileSchema = computed(() => toTypedSchema(createTerminalProfileFormSchema(t)))
 const terminalProfileForm = useForm<TerminalProfileFormValues>({
@@ -45,22 +57,33 @@ const terminalProfileForm = useForm<TerminalProfileFormValues>({
   },
 })
 
-watch(draggableAdapters, (v) => { localItems.value = [...v] })
-watch(() => props.terminalProfileOpen, (open) => {
-  if (!open) return
-  terminalProfileForm.resetForm({
-    values: {
-      label: props.profileDraft.label,
-      executablePath: props.profileDraft.executablePath,
-    },
-  })
+watch(draggableAdapters, (v) => {
+  localItems.value = [...v]
 })
-watch(() => props.profileDraft.label, (label) => {
-  if (props.terminalProfileOpen) terminalProfileForm.setFieldValue('label', label)
-})
-watch(() => props.profileDraft.executablePath, (path) => {
-  if (props.terminalProfileOpen) terminalProfileForm.setFieldValue('executablePath', path)
-})
+watch(
+  () => props.terminalProfileOpen,
+  (open) => {
+    if (!open) return
+    terminalProfileForm.resetForm({
+      values: {
+        label: props.profileDraft.label,
+        executablePath: props.profileDraft.executablePath,
+      },
+    })
+  },
+)
+watch(
+  () => props.profileDraft.label,
+  (label) => {
+    if (props.terminalProfileOpen) terminalProfileForm.setFieldValue('label', label)
+  },
+)
+watch(
+  () => props.profileDraft.executablePath,
+  (path) => {
+    if (props.terminalProfileOpen) terminalProfileForm.setFieldValue('executablePath', path)
+  },
+)
 
 const draggedId = ref('')
 let lastSwapTarget = ''
@@ -110,11 +133,20 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
 <template>
   <section class="settings-page settings-page-layout">
     <template v-if="!terminalProfileOpen">
-      <div class="field-label">{{ t('terminal.default') }}
-        <Select :model-value="preferences.defaultAdapterId" @update:model-value="emit('change-default-adapter', String($event))">
+      <div class="field-label">
+        {{ t('terminal.default') }}
+        <Select
+          :model-value="preferences.defaultAdapterId"
+          @update:model-value="emit('change-default-adapter', String($event))"
+        >
           <SelectTrigger><SelectValue /></SelectTrigger>
           <SelectContent>
-            <SelectItem v-for="adapter in adapters" :key="adapter.id" :value="adapter.id" :disabled="adapter.id !== 'auto' && !adapter.enabled">
+            <SelectItem
+              v-for="adapter in adapters"
+              :key="adapter.id"
+              :value="adapter.id"
+              :disabled="adapter.id !== 'auto' && !adapter.enabled"
+            >
               {{ adapter.label }}
             </SelectItem>
           </SelectContent>
@@ -125,10 +157,7 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
           v-for="adapter in localItems"
           :key="adapter.id"
           draggable="true"
-          :class="[
-            'native-row',
-            draggedId === adapter.id ? 'opacity-30 scale-[0.97]' : ''
-          ]"
+          :class="['native-row', draggedId === adapter.id ? 'opacity-30 scale-[0.97]' : '']"
           @dragstart="onDragStart($event, adapter.id)"
           @dragover="onDragOver($event, adapter.id)"
           @dragend="onDragEnd"
@@ -136,7 +165,10 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
           <span class="drag-handle" aria-hidden="true">⋮⋮</span>
           <div>
             <strong>{{ adapter.label }}</strong>
-            <small>{{ availabilityText(adapter) }}{{ adapter.message ? ` · ${adapter.message}` : '' }}</small>
+            <small
+              >{{ availabilityText(adapter)
+              }}{{ adapter.message ? ` · ${adapter.message}` : '' }}</small
+            >
           </div>
           <div class="row-actions row-actions-layout">
             <Switch
@@ -159,10 +191,14 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
           </div>
           <div class="row-actions row-actions-layout">
             <Button @click="emit('open-profile', profile)">{{ t('common.edit') }}</Button>
-            <Button variant="destructive" @click="emit('remove-profile', profile.id)">{{ t('common.remove') }}</Button>
+            <Button variant="destructive" @click="emit('remove-profile', profile.id)">{{
+              t('common.remove')
+            }}</Button>
           </div>
         </article>
-        <p v-if="terminalProfiles.length === 0" class="settings-empty">{{ t('terminal.emptyCustom') }}</p>
+        <p v-if="terminalProfiles.length === 0" class="settings-empty">
+          {{ t('terminal.emptyCustom') }}
+        </p>
       </div>
     </template>
     <template v-else>
@@ -175,7 +211,12 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
                 <Input
                   :model-value="value"
                   placeholder="My Terminal"
-                  @update:model-value="(next) => { handleChange(next); emit('update-profile-field', 'label', String(next)) }"
+                  @update:model-value="
+                    (next) => {
+                      handleChange(next)
+                      emit('update-profile-field', 'label', String(next))
+                    }
+                  "
                   @blur="handleBlur"
                 />
               </FormControl>
@@ -188,7 +229,9 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
               <FormControl>
                 <div class="path-picker" :aria-invalid="!value">
                   <span>{{ value || t('common.notSelected') }}</span>
-                  <Button type="button" @click="emit('choose-executable')">{{ t('common.choose') }}</Button>
+                  <Button type="button" @click="emit('choose-executable')">{{
+                    t('common.choose')
+                  }}</Button>
                 </div>
               </FormControl>
               <FormMessage />

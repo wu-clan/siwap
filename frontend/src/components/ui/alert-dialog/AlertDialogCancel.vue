@@ -11,7 +11,11 @@ const delegatedProps = reactiveOmit(props, 'class')
 </script>
 
 <template>
-  <AlertDialogCancel data-slot="alert-dialog-cancel" v-bind="delegatedProps" :class="cn(buttonVariants({ variant: 'outline' }), 'mt-2 sm:mt-0', props.class)">
+  <AlertDialogCancel
+    data-slot="alert-dialog-cancel"
+    v-bind="delegatedProps"
+    :class="cn(buttonVariants({ variant: 'outline' }), 'mt-2 sm:mt-0', props.class)"
+  >
     <slot />
   </AlertDialogCancel>
 </template>

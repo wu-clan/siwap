@@ -16,7 +16,10 @@ export function usePreferencesActions(options: {
   const { preferences, run, t, confirm } = options
 
   async function savePreferences(next: Preferences = preferences.value) {
-    const updated = await run('action.saveSettings', () => UpdatePreferences(next as never) as unknown as Promise<Preferences>)
+    const updated = await run(
+      'action.saveSettings',
+      () => UpdatePreferences(next as never) as unknown as Promise<Preferences>,
+    )
     if (updated) preferences.value = normalizePreferences(updated)
   }
 
@@ -26,12 +29,15 @@ export function usePreferencesActions(options: {
   }
 
   async function toggleAlwaysOnTop() {
-    const state = await run('action.pinWindow', () => ToggleAlwaysOnTop() as unknown as Promise<WindowState>)
+    const state = await run(
+      'action.pinWindow',
+      () => ToggleAlwaysOnTop() as unknown as Promise<WindowState>,
+    )
     if (state) preferences.value.alwaysOnTop = state.alwaysOnTop
   }
 
   async function resetPreferences() {
-    if (!await confirm(t('confirm.restoreDefaults'))) return
+    if (!(await confirm(t('confirm.restoreDefaults')))) return
     preferences.value = {
       ...fallbackPreferences,
       selectedProjectId: preferences.value.selectedProjectId,

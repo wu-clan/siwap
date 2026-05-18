@@ -51,7 +51,11 @@ function onOpenUpdate(value: boolean) {
         <AlertDialogDescription>{{ props.description }}</AlertDialogDescription>
       </AlertDialogHeader>
       <AlertDialogFooter>
-        <AlertDialogCancel @pointerdown="mark('cancel')" @keydown.enter="mark('cancel')" @keydown.space="mark('cancel')">
+        <AlertDialogCancel
+          @pointerdown="mark('cancel')"
+          @keydown.enter="mark('cancel')"
+          @keydown.space="mark('cancel')"
+        >
           {{ t('common.cancel') }}
         </AlertDialogCancel>
         <AlertDialogAction

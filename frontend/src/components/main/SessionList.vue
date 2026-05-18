@@ -42,17 +42,15 @@ function requestClearAll() {
     <div class="section-heading section-heading-layout session-heading-layout">
       <h2 id="sessions-title">{{ t('nav.sessions') }}</h2>
     </div>
-    <div class="session-list session-list-layout" role="listbox" :aria-label="t('session.currentSessions')">
-      <ContextMenu
-        v-for="session in sessions"
-        :key="session.id"
-      >
+    <div
+      class="session-list session-list-layout"
+      role="listbox"
+      :aria-label="t('session.currentSessions')"
+    >
+      <ContextMenu v-for="session in sessions" :key="session.id">
         <ContextMenuTrigger as-child>
           <div
-            :class="[
-              'session-row',
-              session.id === selectedSessionId ? 'selected' : ''
-            ]"
+            :class="['session-row', session.id === selectedSessionId ? 'selected' : '']"
             role="option"
             tabindex="0"
             :aria-label="sessionA11yLabel(session)"

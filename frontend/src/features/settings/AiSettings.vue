@@ -18,7 +18,12 @@ const emit = defineEmits<{
 const { t } = useI18n({ useScope: 'global' })
 
 const localItems = ref<Harness[]>([...props.harnesses])
-watch(() => props.harnesses, (v) => { localItems.value = [...v] })
+watch(
+  () => props.harnesses,
+  (v) => {
+    localItems.value = [...v]
+  },
+)
 
 const draggedId = ref('')
 let lastSwapTarget = ''
@@ -70,7 +75,7 @@ function toggleEnabled(harness: Harness, value: boolean) {
         draggable="true"
         :class="[
           'native-row assistant-config',
-          draggedId === harness.id ? 'opacity-30 scale-[0.97]' : ''
+          draggedId === harness.id ? 'opacity-30 scale-[0.97]' : '',
         ]"
         @dragstart="onDragStart($event, harness.id)"
         @dragover="onDragOver($event, harness.id)"
@@ -80,7 +85,8 @@ function toggleEnabled(harness: Harness, value: boolean) {
         <AssistantLogo :harness="harness" mini />
         <div class="ai-row-content">
           <strong class="ai-row-name">{{ harness.label }}</strong>
-          <label class="field-label">{{ t('common.command') }}
+          <label class="field-label"
+            >{{ t('common.command') }}
             <Input v-model="harness.command" @change="emit('save', harness)" />
           </label>
         </div>
