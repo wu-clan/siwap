@@ -2,24 +2,27 @@
 set -euo pipefail
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
-  echo "usage: scripts/release.sh <version>" >&2
+  echo "usage: scripts/release.sh <version> [arch]" >&2
   exit 2
 fi
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
-WAILS3="${WAILS3:-$(go env GOPATH)/bin/wails3}"
+WAILS3="${WAILS3:-$(command -v wails3 2>/dev/null || printf "%s/bin/wails3" "$(go env GOPATH)")}"
+ARCH="${2:-${ARCH:-$(go env GOARCH)}}"
 
-echo "==> building Siwap $VERSION"
-"$WAILS3" task build VERSION="$VERSION"
+echo "==> testing Siwap $VERSION"
 go test ./...
 
-APP="bin/siwap"
-if [[ -f "$APP" && -n "${SIWAP_CODESIGN_IDENTITY:-}" ]]; then
+echo "==> packaging Siwap $VERSION for $(go env GOOS)/$ARCH"
+"$WAILS3" task package VERSION="$VERSION" ARCH="$ARCH"
+
+APP="bin/siwap.app"
+if [[ "$(go env GOOS)" == "darwin" && -d "$APP" && -n "${SIWAP_CODESIGN_IDENTITY:-}" ]]; then
   echo "==> signing with $SIWAP_CODESIGN_IDENTITY"
-  codesign --force --options runtime --sign "$SIWAP_CODESIGN_IDENTITY" "$APP"
-  codesign --verify --strict "$APP"
+  codesign --force --deep --options runtime --sign "$SIWAP_CODESIGN_IDENTITY" "$APP"
+  codesign --verify --strict --deep "$APP"
 else
-  echo "==> skipping codesign; set SIWAP_CODESIGN_IDENTITY to sign macOS binaries"
+  echo "==> skipping codesign; set SIWAP_CODESIGN_IDENTITY to sign macOS app bundles"
 fi
 
 echo "Release build completed. Create a GitHub release and attach artifacts from bin."
