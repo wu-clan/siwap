@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"path/filepath"
 	"runtime"
+	"sort"
 	"strconv"
 	"strings"
 	"syscall"
@@ -260,7 +261,7 @@ type terminalAppSurface struct {
 
 // launchDarwinGhostty 使用 macOS Ghostty 自动化能力启动会话
 func (s *Service) launchDarwinGhostty(req LaunchRequest) (LaunchResult, error) {
-	initialInput := terminalShellCommand(req)
+	initialInput := terminalStartupCommand(req)
 	script := fmt.Sprintf(`
 %s
 
@@ -365,7 +366,7 @@ func (s *Service) launchMacTerminal(req LaunchRequest) (LaunchResult, error) {
 	if runtime.GOOS != "darwin" {
 		return LaunchResult{}, errors.New("macOS Terminal.app adapter is only available on macOS")
 	}
-	command := terminalShellCommand(req)
+	command := terminalStartupCommand(req)
 	script := fmt.Sprintf(`
 %s
 
@@ -623,13 +624,82 @@ func linuxDesktopAdapter() domain.TerminalAdapter {
 // terminalShellCommand 生成在终端中执行的完整 shell 命令
 func terminalShellCommand(req LaunchRequest) string {
 	// 先设置窗口标题、工作目录和环境变量，再执行助手命令，保证会话可追踪
-	parts := []string{"printf '\\033]0;%s\\007' " + shellQuote(req.Title), "cd " + shellQuote(req.WorkingDir)}
-	for key, value := range req.Environment {
+	parts := []string{terminalClearScrollbackCommand(), "printf '\\033]0;%s\\007' " + shellQuote(req.Title), "cd " + shellQuote(req.WorkingDir)}
+	for _, key := range sortedEnvKeys(req.Environment) {
+		value := req.Environment[key]
 		parts = append(parts, "export "+key+"="+shellQuote(value))
 	}
-	parts = append(parts, "clear")
 	parts = append(parts, req.Command)
 	return strings.Join(parts, "; ")
+}
+
+// terminalStartupCommand 使用短启动脚本避免在新终端中暴露完整初始化命令
+func terminalStartupCommand(req LaunchRequest) string {
+	path, err := writeTerminalLauncherScript(req)
+	if err != nil {
+		return terminalShellCommand(req)
+	}
+	return "exec /bin/sh " + shellQuote(path)
+}
+
+// writeTerminalLauncherScript 写入一次性启动脚本，供 AppleScript do script 调用
+func writeTerminalLauncherScript(req LaunchRequest) (string, error) {
+	cacheDir, err := os.UserCacheDir()
+	if err != nil || cacheDir == "" {
+		cacheDir = os.TempDir()
+	}
+	dir := filepath.Join(cacheDir, "siwap", "launchers")
+	if err := os.MkdirAll(dir, 0700); err != nil {
+		return "", err
+	}
+	name := safeLauncherName(req.Environment[domain.SessionEnvironmentKey])
+	path := filepath.Join(dir, name+".sh")
+	return path, os.WriteFile(path, []byte(terminalLauncherScriptContent(req, userShell())), 0700)
+}
+
+// terminalLauncherScriptContent 生成真正运行助手的脚本内容
+func terminalLauncherScriptContent(req LaunchRequest, shell string) string {
+	lines := []string{
+		"#!/bin/sh",
+		`rm -f "$0"`,
+		terminalClearScrollbackCommand(),
+		"printf '\\033]0;%s\\007' " + shellQuote(req.Title),
+		"cd " + shellQuote(req.WorkingDir) + " || exit $?",
+	}
+	for _, key := range sortedEnvKeys(req.Environment) {
+		lines = append(lines, "export "+key+"="+shellQuote(req.Environment[key]))
+	}
+	lines = append(lines, "exec "+shellQuote(shell)+" -lc "+shellQuote(req.Command))
+	return strings.Join(lines, "\n") + "\n"
+}
+
+func terminalClearScrollbackCommand() string {
+	return "printf '\\033[3J\\033[H\\033[2J'"
+}
+
+func sortedEnvKeys(env map[string]string) []string {
+	keys := make([]string, 0, len(env))
+	for key := range env {
+		keys = append(keys, key)
+	}
+	sort.Strings(keys)
+	return keys
+}
+
+func safeLauncherName(sessionID string) string {
+	if strings.TrimSpace(sessionID) == "" {
+		sessionID = SessionID()
+	}
+	var b strings.Builder
+	for _, r := range sessionID {
+		if r >= 'a' && r <= 'z' || r >= 'A' && r <= 'Z' || r >= '0' && r <= '9' || r == '-' || r == '_' || r == '.' {
+			b.WriteRune(r)
+		}
+	}
+	if b.Len() == 0 {
+		return SessionID()
+	}
+	return b.String()
 }
 
 // mergeEnv 将附加环境变量合并到当前进程环境

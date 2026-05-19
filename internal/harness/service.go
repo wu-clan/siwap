@@ -47,40 +47,7 @@ func (s *Service) Reorder(ids []string) ([]domain.Harness, error) {
 	return s.store.ReorderHarnesses(ids)
 }
 
-// BuildCommand 根据助手配置和参数值生成启动命令
-func BuildCommand(harness domain.Harness, overrides map[string]string) string {
-	flags := map[string]string{}
-	for key, value := range harness.Flags {
-		flags[key] = value
-	}
-	for key, value := range overrides {
-		flags[key] = value
-	}
-
-	parts := []string{strings.TrimSpace(harness.Command)}
-	for _, option := range harness.FlagOptions {
-		value := flags[option.Key]
-		if value == "" {
-			value = option.Default
-		}
-		switch option.Type {
-		case "toggle":
-			if value == "true" && option.CommandFlag != "" {
-				parts = append(parts, option.CommandFlag)
-			}
-		case "select":
-			if value != "" && value != option.Default && option.CommandFlag != "" {
-				parts = append(parts, option.CommandFlag, shellQuote(value))
-			}
-		}
-	}
-	return strings.Join(parts, " ")
-}
-
-// shellQuote 对命令参数进行 shell 安全转义
-func shellQuote(value string) string {
-	if value == "" {
-		return "''"
-	}
-	return "'" + strings.ReplaceAll(value, "'", "'\\''") + "'"
+// BuildCommand 只返回用户配置的助手命令，不追加任何隐藏参数
+func BuildCommand(harness domain.Harness, _ map[string]string) string {
+	return strings.TrimSpace(harness.Command)
 }

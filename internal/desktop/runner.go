@@ -95,6 +95,8 @@ func appMenu(app *App) *application.Menu {
 	appMenu.AddSeparator()
 	appMenu.Add(app.menuText("退出", "Quit")).SetAccelerator("CmdOrCtrl+q").OnClick(func(*application.Context) { _ = app.Quit() })
 
+	root.AddRole(application.EditMenu)
+
 	sessions := root.AddSubmenu(app.menuText("会话", "Sessions"))
 	sessions.Add(app.menuText("清理会话", "Clear Sessions")).SetAccelerator("CmdOrCtrl+Shift+delete").OnClick(func(*application.Context) { _ = app.ClearSessions() })
 

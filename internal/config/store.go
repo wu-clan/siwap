@@ -624,11 +624,6 @@ func defaultHarnesses() []domain.Harness {
 			Icon:       "claude",
 			IconSource: "builtin",
 			Tint:       "#F2A65A",
-			Flags:      map[string]string{"dangerouslySkipPermissions": "false", "permissionMode": "default"},
-			FlagOptions: []domain.HarnessFlag{
-				{Key: "dangerouslySkipPermissions", Label: "Skip permissions", Type: "toggle", CommandFlag: "--dangerously-skip-permissions", Default: "false"},
-				{Key: "permissionMode", Label: "Permission mode", Type: "select", CommandFlag: "--permission-mode", Default: "default", Options: []string{"default", "acceptEdits", "plan", "auto", "dontAsk", "bypassPermissions"}},
-			},
 		},
 		{
 			ID:         "codex",
@@ -639,10 +634,6 @@ func defaultHarnesses() []domain.Harness {
 			Icon:       "codex",
 			IconSource: "builtin",
 			Tint:       "#66D9E8",
-			Flags:      map[string]string{"yolo": "false"},
-			FlagOptions: []domain.HarnessFlag{
-				{Key: "yolo", Label: "YOLO mode", Type: "toggle", CommandFlag: "--yolo", Default: "false"},
-			},
 		},
 		{
 			ID:         "opencode",
@@ -653,10 +644,6 @@ func defaultHarnesses() []domain.Harness {
 			Icon:       "opencode",
 			IconSource: "builtin",
 			Tint:       "#8CE99A",
-			Flags:      map[string]string{"yolo": "false"},
-			FlagOptions: []domain.HarnessFlag{
-				{Key: "yolo", Label: "YOLO mode", Type: "toggle", CommandFlag: "--yolo", Default: "false"},
-			},
 		},
 	}
 }

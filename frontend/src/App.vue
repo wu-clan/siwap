@@ -214,18 +214,21 @@ function syncSessions(next: Session[]) {
 async function listWorktreeBranches(projectId: string) {
   if (!projectId) return []
   try {
-    return (await ListWorktreeBranches(projectId)) as unknown as string[]
+    const branches = (await ListWorktreeBranches(projectId)) as unknown as string[]
+    return branches.filter((branch) => !isOriginBranch(branch))
   } catch {
     return []
   }
 }
 
+function isOriginBranch(branch: string) {
+  return branch === 'origin' || branch.startsWith('origin/') || branch.startsWith('remotes/origin/')
+}
+
 function defaultBaseBranch(branches: string[]) {
   return (
     branches.find((branch) => branch === 'main') ??
-    branches.find((branch) => branch.endsWith('/main')) ??
     branches.find((branch) => branch === 'master') ??
-    branches.find((branch) => branch.endsWith('/master')) ??
     branches[0] ??
     ''
   )
@@ -293,7 +296,6 @@ const { chooseProjectDirectory, selectProject, setDefaultProject, removeProject,
 const { openWorktreeCreate, closeWorktreeCreate, createWorktree, deleteWorktree } =
   useWorktreeActions({
     selectedProject: settingsWorktreeProject,
-    selectedProjectId,
     selectedWorktreePath,
     branchDraft,
     baseBranchDraft,
@@ -304,6 +306,7 @@ const { openWorktreeCreate, closeWorktreeCreate, createWorktree, deleteWorktree 
     run,
     t,
     refreshWorktrees,
+    refreshWorktreeBranches,
     canCreateWorktree,
     confirm: confirmAction,
   })
@@ -376,15 +379,15 @@ function hasWailsRuntime() {
   )
 }
 
-function applySettingsPayload(payload?: string) {
+async function applySettingsPayload(payload?: string) {
   const [section, action] = (payload || '').split(':')
   if (section && settingsSections.some((item) => item.id === section)) {
     settingsSection.value = section as SettingsSection
   }
   if (section === 'worktrees' && action === 'create') {
     settingsWorktreeProjectId.value = selectedProjectId.value
+    await refreshWorktreeBranches()
     worktreeCreateOpen.value = true
-    void refreshWorktreeBranches()
   }
 }
 
@@ -431,7 +434,7 @@ onMounted(() => {
   void initializeApp()
   if (hasWailsRuntime()) {
     offSettings = Events.On('ui:open-settings', (event) => {
-      applySettingsPayload(event.data as string | undefined)
+      void applySettingsPayload(event.data as string | undefined)
       if (isSettingsWindow.value) settingsOpen.value = true
     })
     offPreferences = Events.On('preferences:updated', (event) => {

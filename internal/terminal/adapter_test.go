@@ -113,14 +113,39 @@ func TestTerminalShellCommandDoesNotEmbedRawControlCharacters(t *testing.T) {
 		t.Fatalf("command should not embed raw terminal control bytes: %q", got)
 	}
 	for _, want := range []string{
+		`printf '\033[3J\033[H\033[2J'`,
 		`printf '\033]0;%s\007' 'Siwap siwap-123'`,
 		`cd '/tmp/siwap-project'`,
 		`export SIWAP_SESSION_ID='siwap-123'`,
-		`; clear; claude`,
 		`claude`,
 	} {
 		if !strings.Contains(got, want) {
 			t.Fatalf("command %q does not contain %q", got, want)
+		}
+	}
+}
+
+// TestTerminalLauncherScriptRunsCleanExec 验证对应功能行为
+func TestTerminalLauncherScriptRunsCleanExec(t *testing.T) {
+	req := LaunchRequest{
+		WorkingDir: "/tmp/siwap-project",
+		Title:      "Siwap siwap-123",
+		Command:    "codex --dangerously-bypass-approvals-and-sandbox",
+		Environment: map[string]string{
+			"SIWAP_SESSION_ID": "siwap-123",
+		},
+	}
+
+	got := terminalLauncherScriptContent(req, "/bin/zsh")
+	for _, want := range []string{
+		`rm -f "$0"`,
+		`printf '\033[3J\033[H\033[2J'`,
+		`cd '/tmp/siwap-project' || exit $?`,
+		`export SIWAP_SESSION_ID='siwap-123'`,
+		`exec '/bin/zsh' -lc 'codex --dangerously-bypass-approvals-and-sandbox'`,
+	} {
+		if !strings.Contains(got, want) {
+			t.Fatalf("script %q does not contain %q", got, want)
 		}
 	}
 }

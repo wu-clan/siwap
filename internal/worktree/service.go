@@ -58,7 +58,7 @@ func (s *Service) Branches(projectPath string) []string {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
-	cmd := exec.CommandContext(ctx, "git", "-C", projectPath, "for-each-ref", "--format=%(refname:short)", "refs/heads", "refs/remotes")
+	cmd := exec.CommandContext(ctx, "git", "-C", projectPath, "for-each-ref", "--format=%(refname:short)", "refs/heads")
 	out, err := cmd.Output()
 	if err != nil {
 		return []string{}
@@ -85,9 +85,12 @@ func (s *Service) Create(req CreateRequest) (domain.Worktree, error) {
 	}
 	branch := strings.TrimSpace(req.Branch)
 	if branch == "" {
-		branch = "siwap/session-" + time.Now().Format("20060102-150405")
+		return domain.Worktree{}, errors.New("branch is required")
 	}
 	branch = safeBranch(branch)
+	if branch == "" {
+		return domain.Worktree{}, errors.New("branch is required")
+	}
 	target := strings.TrimSpace(req.Path)
 	if target == "" {
 		baseDir := strings.TrimSpace(req.BaseDir)
@@ -271,9 +274,6 @@ func safeBranch(branch string) string {
 	branch = strings.ReplaceAll(branch, " ", "-")
 	branch = strings.ReplaceAll(branch, "\\", "-")
 	branch = strings.Trim(branch, "/")
-	if branch == "" {
-		return "siwap/session-" + time.Now().Format("20060102-150405")
-	}
 	return branch
 }
 
@@ -284,13 +284,17 @@ func parseBranches(data string) []string {
 	scanner := bufio.NewScanner(strings.NewReader(data))
 	for scanner.Scan() {
 		branch := strings.TrimSpace(scanner.Text())
-		if branch == "" || strings.HasSuffix(branch, "/HEAD") || seen[branch] {
+		if branch == "" || isOriginBranch(branch) || strings.HasSuffix(branch, "/HEAD") || seen[branch] {
 			continue
 		}
 		seen[branch] = true
 		out = append(out, branch)
 	}
 	return out
+}
+
+func isOriginBranch(branch string) bool {
+	return branch == "origin" || strings.HasPrefix(branch, "origin/") || strings.HasPrefix(branch, "remotes/origin/")
 }
 
 // containsBranch 判断分支列表是否包含指定分支

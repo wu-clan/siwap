@@ -91,6 +91,7 @@ const messages = {
   'confirm.removeWorktree': '删除工作树“{name}”？',
   'confirm.removeTerminalProfile': '移除这个自定义终端？',
   'confirm.restoreDefaults': '恢复默认设置？项目、工作树和自定义终端不会被删除',
+  'validation.branchRequired': '请输入新分支名',
   'validation.branchInvalid': '分支名包含 Git 不支持的字符',
   'validation.branchTooLong': '分支名不能超过 120 个字符',
   'validation.pathMustBeAbsolute': '路径必须是绝对路径',

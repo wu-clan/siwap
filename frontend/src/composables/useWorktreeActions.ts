@@ -8,7 +8,6 @@ type Confirm = (description: string) => Promise<boolean>
 
 export function useWorktreeActions(options: {
   selectedProject: ComputedRef<Project | undefined>
-  selectedProjectId: ComputedRef<string>
   selectedWorktreePath: Ref<string>
   branchDraft: Ref<string>
   baseBranchDraft: Ref<string>
@@ -19,12 +18,12 @@ export function useWorktreeActions(options: {
   run: Run
   t: Translate
   refreshWorktrees: () => Promise<void>
+  refreshWorktreeBranches: () => Promise<void>
   canCreateWorktree: ComputedRef<boolean>
   confirm: Confirm
 }) {
   const {
     selectedProject,
-    selectedProjectId,
     selectedWorktreePath,
     branchDraft,
     baseBranchDraft,
@@ -35,6 +34,7 @@ export function useWorktreeActions(options: {
     run,
     t,
     refreshWorktrees,
+    refreshWorktreeBranches,
     canCreateWorktree,
     confirm,
   } = options
@@ -51,11 +51,12 @@ export function useWorktreeActions(options: {
     return item.isMain || item.branch === 'main' || item.branch === 'master'
   }
 
-  function openWorktreeCreate() {
+  async function openWorktreeCreate() {
     if (!selectedProject.value) {
       actionMessage.value = t('project.selectFirst')
       return
     }
+    await refreshWorktreeBranches()
     if (!canCreateWorktree.value) {
       actionMessage.value = t('worktree.gitRequired')
       return
@@ -94,8 +95,6 @@ export function useWorktreeActions(options: {
     worktreePathDraft.value = ''
     worktreeCreateOpen.value = false
     await refreshWorktrees()
-    if (selectedProjectId.value === selectedProject.value.id)
-      selectedWorktreePath.value = created.path
     actionMessage.value = t('worktree.createdSelectFromMain')
   }
 

@@ -13,7 +13,6 @@
   },
   "dependencies": {
     "@radix-icons/vue": "^1.0.0",
-    "@tailwindcss/vite": "^4.3.0",
     "@vee-validate/zod": "^4.15.1",
     "@vueuse/core": "^14.3.0",
     "@wailsio/runtime": "3.0.0-alpha.79",
@@ -21,16 +20,17 @@
     "clsx": "^2.1.1",
     "reka-ui": "^2.9.7",
     "tailwind-merge": "^3.6.0",
-    "tailwindcss": "^4.3.0",
     "vee-validate": "^4.15.1",
     "vue": "latest",
     "vue-i18n": "^11.4.2",
     "zod": "3.25.76"
   },
   "devDependencies": {
+    "@tailwindcss/vite": "^4.3.0",
     "@types/node": "^25.8.0",
     "@vitejs/plugin-vue": "latest",
     "shadcn-vue": "^2.7.3",
+    "tailwindcss": "^4.3.0",
     "typescript": "latest",
     "vite-plus": "latest",
     "vue-tsc": "latest"

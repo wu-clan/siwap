@@ -72,6 +72,17 @@ func TestBranchesListsExistingGitBranches(t *testing.T) {
 	}
 }
 
+// TestParseBranchesSkipsOriginBranches 验证对应功能行为
+func TestParseBranchesSkipsOriginBranches(t *testing.T) {
+	branches := parseBranches("main\norigin/main\nremotes/origin/dev\nfeature/demo\norigin/HEAD\n")
+	if containsBranch(branches, "origin/main") || containsBranch(branches, "remotes/origin/dev") {
+		t.Fatalf("origin branches should be filtered out: %#v", branches)
+	}
+	if !containsBranch(branches, "main") || !containsBranch(branches, "feature/demo") {
+		t.Fatalf("local branches should be kept: %#v", branches)
+	}
+}
+
 // TestCreateRejectsUnknownBaseBranch 验证对应功能行为
 func TestCreateRejectsUnknownBaseBranch(t *testing.T) {
 	if _, err := exec.LookPath("git"); err != nil {
@@ -88,6 +99,24 @@ func TestCreateRejectsUnknownBaseBranch(t *testing.T) {
 	})
 	if err == nil || !strings.Contains(err.Error(), "base branch does not exist") {
 		t.Fatalf("expected missing base branch error, got %v", err)
+	}
+}
+
+// TestCreateRequiresBranchName 验证对应功能行为
+func TestCreateRequiresBranchName(t *testing.T) {
+	if _, err := exec.LookPath("git"); err != nil {
+		t.Skip("git not available")
+	}
+	root := t.TempDir()
+	repo := initTestRepoAt(t, filepath.Join(root, "repo"))
+	_, err := NewService().Create(CreateRequest{
+		ProjectID:   "project-1",
+		ProjectPath: repo,
+		BaseBranch:  "main",
+		Path:        filepath.Join(root, "repo-worktree"),
+	})
+	if err == nil || !strings.Contains(err.Error(), "branch is required") {
+		t.Fatalf("expected branch required error, got %v", err)
 	}
 }
 

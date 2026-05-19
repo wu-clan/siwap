@@ -11,9 +11,6 @@ importers:
       '@radix-icons/vue':
         specifier: ^1.0.0
         version: 1.0.0(vue@3.5.34(typescript@6.0.3))
-      '@tailwindcss/vite':
-        specifier: ^4.3.0
-        version: 4.3.0(vite@8.0.12(@types/node@25.8.0)(jiti@2.7.0)(stylus@0.57.0))
       '@vee-validate/zod':
         specifier: ^4.15.1
         version: 4.15.1(vue@3.5.34(typescript@6.0.3))(zod@3.25.76)
@@ -35,9 +32,6 @@ importers:
       tailwind-merge:
         specifier: ^3.6.0
         version: 3.6.0
-      tailwindcss:
-        specifier: ^4.3.0
-        version: 4.3.0
       vee-validate:
         specifier: ^4.15.1
         version: 4.15.1(vue@3.5.34(typescript@6.0.3))
@@ -51,6 +45,9 @@ importers:
         specifier: 3.25.76
         version: 3.25.76
     devDependencies:
+      '@tailwindcss/vite':
+        specifier: ^4.3.0
+        version: 4.3.0(vite@8.0.12(@types/node@25.8.0)(jiti@2.7.0)(stylus@0.57.0))
       '@types/node':
         specifier: ^25.8.0
         version: 25.8.0
@@ -60,6 +57,9 @@ importers:
       shadcn-vue:
         specifier: ^2.7.3
         version: 2.7.3(eslint@10.3.0(jiti@2.7.0))(vue@3.5.34(typescript@6.0.3))
+      tailwindcss:
+        specifier: ^4.3.0
+        version: 4.3.0
       typescript:
         specifier: latest
         version: 6.0.3

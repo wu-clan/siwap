@@ -92,6 +92,7 @@ const messages = {
   'confirm.removeTerminalProfile': 'Remove this custom terminal?',
   'confirm.restoreDefaults':
     'Restore defaults? Projects, worktrees, and custom terminals will not be deleted',
+  'validation.branchRequired': 'Enter a new branch name',
   'validation.branchInvalid': 'Branch name contains characters Git does not support',
   'validation.branchTooLong': 'Branch name must be 120 characters or fewer',
   'validation.pathMustBeAbsolute': 'Path must be absolute',

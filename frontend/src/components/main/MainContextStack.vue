@@ -63,8 +63,7 @@ function onWorktreeChange(value: string) {
         <SelectContent>
           <SelectItem :value="ALL_PROJECTS_SCOPE_ID">{{ t('project.allProjects') }}</SelectItem>
           <SelectItem v-for="project in projects" :key="project.id" :value="project.id">
-            {{ props.projectName(project)
-            }}{{ project.isDefault ? ` · ${t('common.default')}` : '' }}
+            {{ props.projectName(project) }}
           </SelectItem>
           <SelectSeparator v-if="projects.length > 0" />
           <SelectItem value="__add_project">{{ t('project.addEllipsis') }}</SelectItem>
@@ -85,8 +84,7 @@ function onWorktreeChange(value: string) {
         <SelectContent>
           <SelectItem value="__project">{{ t('worktree.projectDirectory') }}</SelectItem>
           <SelectItem v-for="item in currentWorktrees" :key="item.id" :value="item.path">
-            {{ item.branch || props.basename(item.path)
-            }}{{ item.dirty ? ` · ${t('worktree.modified')}` : '' }}
+            {{ item.branch || props.basename(item.path) }}
           </SelectItem>
           <SelectSeparator />
           <SelectItem value="__add_worktree">{{ t('worktree.addEllipsis') }}</SelectItem>

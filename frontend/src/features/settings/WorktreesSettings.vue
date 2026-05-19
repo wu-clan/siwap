@@ -47,14 +47,14 @@ const emit = defineEmits<{
 const { t } = useI18n({ useScope: 'global' })
 
 const worktreeSchema = computed(() => toTypedSchema(createWorktreeFormSchema(t)))
-const baseBranchOptions = computed(() => props.worktreeBranches)
+const baseBranchOptions = computed(() =>
+  props.worktreeBranches.filter((branch) => !isOriginBranch(branch)),
+)
 const defaultBaseBranch = computed(
   () =>
-    props.worktreeBranches.find((branch) => branch === 'main') ??
-    props.worktreeBranches.find((branch) => branch.endsWith('/main')) ??
-    props.worktreeBranches.find((branch) => branch === 'master') ??
-    props.worktreeBranches.find((branch) => branch.endsWith('/master')) ??
-    props.worktreeBranches[0] ??
+    baseBranchOptions.value.find((branch) => branch === 'main') ??
+    baseBranchOptions.value.find((branch) => branch === 'master') ??
+    baseBranchOptions.value[0] ??
     '',
 )
 const worktreeForm = useForm<WorktreeFormValues>({
@@ -84,6 +84,10 @@ const filteredWorktrees = computed(() => {
   if (!props.settingsWorktreeProjectId) return props.allWorktrees
   return props.allWorktrees.filter((w) => w.projectId === props.settingsWorktreeProjectId)
 })
+
+function isOriginBranch(branch: string) {
+  return branch === 'origin' || branch.startsWith('origin/') || branch.startsWith('remotes/origin/')
+}
 
 watch(defaultBaseBranch, (branch) => {
   if (!props.worktreeCreateOpen || !branch) return
@@ -156,20 +160,11 @@ const submitWorktree = worktreeForm.handleSubmit((values) => {
         <article
           v-for="item in filteredWorktrees"
           :key="item.id"
-          :class="[
-            'native-row transition-all',
-            isDefaultWorktree(item) ? 'border-primary/50 bg-primary/5' : '',
-          ]"
+          :class="['native-row transition-all', isDefaultWorktree(item) ? 'is-default' : '']"
         >
           <div>
             <strong>{{ item.branch || 'detached' }}</strong>
-            <span v-if="isDefaultWorktree(item)" class="status-pill">{{
-              t('common.default')
-            }}</span>
             <small>{{ item.path }}</small>
-            <small v-if="item.dirty" class="text-destructive text-xs">{{
-              t('worktree.modified')
-            }}</small>
           </div>
           <div class="row-actions row-actions-layout">
             <Button v-if="canSetDefaultWorktree(item)" @click="setDefaultWorktree(item)">{{

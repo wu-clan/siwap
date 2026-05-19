@@ -157,7 +157,11 @@ const submitTerminalProfile = terminalProfileForm.handleSubmit((values) => {
           v-for="adapter in localItems"
           :key="adapter.id"
           draggable="true"
-          :class="['native-row', draggedId === adapter.id ? 'opacity-30 scale-[0.97]' : '']"
+          :class="[
+            'native-row',
+            adapter.id === preferences.defaultAdapterId ? 'is-default' : '',
+            draggedId === adapter.id ? 'opacity-30 scale-[0.97]' : '',
+          ]"
           @dragstart="onDragStart($event, adapter.id)"
           @dragover="onDragOver($event, adapter.id)"
           @dragend="onDragEnd"

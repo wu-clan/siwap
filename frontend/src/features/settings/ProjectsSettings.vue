@@ -77,7 +77,7 @@ function onDragEnd() {
         draggable="true"
         :class="[
           'native-row project-item',
-          project.isDefault ? 'border-primary/50 bg-primary/5' : '',
+          project.isDefault ? 'is-default' : '',
           draggedId === project.id ? 'opacity-30 scale-[0.97]' : '',
         ]"
         @dragstart="onDragStart($event, project.id)"

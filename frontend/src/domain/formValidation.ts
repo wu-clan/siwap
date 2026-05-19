@@ -20,11 +20,9 @@ export function createWorktreeFormSchema(t: Translate) {
     branch: z
       .string()
       .trim()
+      .min(1, t('validation.branchRequired'))
       .max(120, t('validation.branchTooLong'))
-      .refine(
-        (value) => !value || !gitBranchForbiddenPattern.test(value),
-        t('validation.branchInvalid'),
-      ),
+      .refine((value) => !gitBranchForbiddenPattern.test(value), t('validation.branchInvalid')),
     baseBranch: z.string().trim(),
     path: z.string().trim().refine(isOptionalAbsolutePath, t('validation.pathMustBeAbsolute')),
   })

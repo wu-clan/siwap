@@ -99,6 +99,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --default-accent: oklch(0.62 0.16 150);
   --radius: 0.625rem;
 }
 
@@ -131,6 +132,7 @@
     --sidebar-accent-foreground: oklch(0.985 0 0);
     --sidebar-border: oklch(1 0 0 / 0.1);
     --sidebar-ring: oklch(0.556 0 0);
+    --default-accent: oklch(0.76 0.14 150);
   }
 }
 
@@ -162,6 +164,7 @@
   --sidebar-accent-foreground: oklch(0.205 0 0);
   --sidebar-border: oklch(0.922 0 0);
   --sidebar-ring: oklch(0.708 0 0);
+  --default-accent: oklch(0.62 0.16 150);
 }
 
 [data-resolved-appearance='dark'] {
@@ -192,6 +195,7 @@
   --sidebar-accent-foreground: oklch(0.985 0 0);
   --sidebar-border: oklch(1 0 0 / 0.1);
   --sidebar-ring: oklch(0.556 0 0);
+  --default-accent: oklch(0.76 0.14 150);
 }
 
 * {
@@ -498,9 +502,7 @@ p {
   line-height: 1.25;
 }
 
-.session-title-line em,
-.status-pill,
-.row-tags em {
+.session-title-line em {
   display: inline-flex;
   align-items: center;
   height: 18px;
@@ -526,11 +528,6 @@ p {
 
 .session-row.selected .session-main small {
   color: color-mix(in oklab, var(--foreground) 62%, var(--muted-foreground));
-}
-
-.row-tags em.warn {
-  background: color-mix(in oklab, var(--destructive) 12%, transparent);
-  color: var(--destructive);
 }
 
 .session-empty-card {
@@ -577,18 +574,12 @@ p {
   line-height: 1.45;
 }
 
-.empty-state,
-.settings-empty,
-.settings-note {
+.settings-empty {
   padding: var(--space-7) var(--space-4);
   color: var(--muted-foreground);
   font-size: var(--text-sm);
   line-height: 1.5;
   text-align: center;
-}
-
-.error-text {
-  color: var(--destructive);
 }
 
 /* ---------- Settings ---------- */
@@ -642,24 +633,6 @@ p {
   max-width: 720px;
 }
 
-.page-header {
-  display: grid;
-  gap: var(--space-1);
-}
-
-.page-header h2 {
-  font-size: var(--text-lg);
-  font-weight: 600;
-  letter-spacing: var(--heading-letter);
-  line-height: 1.3;
-}
-
-.page-header p {
-  color: var(--muted-foreground);
-  font-size: var(--text-sm);
-  line-height: 1.5;
-}
-
 .settings-page h3 {
   color: var(--eyebrow-color);
   font-size: var(--eyebrow-size);
@@ -680,8 +653,7 @@ p {
 }
 
 .worktree-create-form,
-.terminal-profile-form,
-.assistant-profile-form {
+.terminal-profile-form {
   grid-template-columns: minmax(0, 1fr);
   max-width: 520px;
 }
@@ -772,6 +744,29 @@ p {
   border-color: color-mix(in oklab, var(--border) 60%, var(--foreground) 12%);
 }
 
+.native-row.is-default {
+  border-color: color-mix(in oklab, var(--default-accent) 78%, var(--border));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--default-accent) 18%, transparent),
+      transparent 58%
+    ),
+    color-mix(in oklab, var(--default-accent) 8%, var(--card));
+  box-shadow: 0 0 0 1px color-mix(in oklab, var(--default-accent) 24%, transparent);
+}
+
+.native-row.is-default:hover {
+  border-color: color-mix(in oklab, var(--default-accent) 90%, var(--border));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in oklab, var(--default-accent) 22%, transparent),
+      transparent 58%
+    ),
+    color-mix(in oklab, var(--default-accent) 11%, var(--card));
+}
+
 .native-row.selected {
   border-color: color-mix(in oklab, var(--primary) 50%, var(--border));
   background: color-mix(in oklab, var(--primary) 6%, var(--card));
@@ -814,11 +809,6 @@ p {
   transform: scale(0.98);
 }
 
-.native-row.drag-over {
-  border-color: var(--ring);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ring) 25%, transparent);
-}
-
 .drag-handle {
   color: color-mix(in oklab, var(--muted-foreground) 55%, transparent);
   cursor: grab;
@@ -834,18 +824,6 @@ p {
 
 .drag-handle:active {
   cursor: grabbing;
-}
-
-.drag-handle.is-static {
-  cursor: default;
-  opacity: 0.45;
-}
-
-.row-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: var(--space-2);
-  margin-top: var(--space-2);
 }
 
 .row-actions-layout {
@@ -871,20 +849,6 @@ p {
 .ai-row-content .field-label {
   font-size: var(--label-size);
   color: var(--label-color);
-}
-
-.ai-row-fields {
-  grid-template-columns: minmax(110px, 1fr) minmax(160px, 1.6fr);
-  align-items: end;
-  gap: var(--space-4);
-}
-
-.ai-row-fields label {
-  display: grid;
-  gap: var(--space-1);
-  color: var(--label-color);
-  font-size: var(--label-size);
-  font-weight: var(--label-weight);
 }
 
 /* ---------- Stagger entrance ---------- */
@@ -977,8 +941,7 @@ p {
 }
 
 @media (max-width: 620px) {
-  .form-grid.two,
-  .ai-row-fields {
+  .form-grid.two {
     grid-template-columns: 1fr;
   }
 
