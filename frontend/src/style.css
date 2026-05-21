@@ -423,7 +423,27 @@ p {
   padding: 2px var(--space-4) var(--space-5);
   display: grid;
   align-content: start;
+  gap: var(--space-4);
+}
+
+.session-project-group {
+  min-width: 0;
+  display: grid;
+  align-content: start;
   gap: var(--space-2);
+}
+
+.session-project-title {
+  min-width: 0;
+  padding: 0 var(--space-2) 0 var(--space-1);
+  overflow: hidden;
+  color: var(--eyebrow-color);
+  font-size: var(--eyebrow-size);
+  font-weight: var(--eyebrow-weight);
+  letter-spacing: var(--eyebrow-letter);
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .session-row {

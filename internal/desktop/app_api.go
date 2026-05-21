@@ -2,6 +2,7 @@ package desktop
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 
 	"siwap/internal/domain"
@@ -10,6 +11,7 @@ import (
 
 // UpdatePreferences 保存用户偏好并刷新相关窗口状态
 func (a *App) UpdatePreferences(prefs domain.Preferences) (domain.Preferences, error) {
+	previous := a.config.Preferences()
 	updated, err := a.config.UpdatePreferences(prefs)
 	if a.mainWindow != nil {
 		a.mainWindow.SetAlwaysOnTop(updated.AlwaysOnTop)
@@ -17,10 +19,23 @@ func (a *App) UpdatePreferences(prefs domain.Preferences) (domain.Preferences, e
 	a.applyTheme(updated.Appearance)
 	// Rebuilding the native app menu from a service callback can terminate the
 	// Wails dev primary process on macOS. The UI language updates immediately;
-	// menu labels pick up the saved language on the next app start.
+	// menu labels pick up the saved language on the next app start
 	a.registerShortcut(updated.GlobalShortcut)
+	if previous.ShowDockIcon != updated.ShowDockIcon {
+		a.applyDockPreference(updated.ShowDockIcon)
+	}
 	a.emit("preferences:updated", updated)
+	if terminalAdapterPreferencesChanged(previous, updated) {
+		a.emit("adapters:updated", a.currentAdapters())
+	}
 	return updated, err
+}
+
+// terminalAdapterPreferencesChanged 判断是否需要重新推送终端适配器列表
+func terminalAdapterPreferencesChanged(previous domain.Preferences, updated domain.Preferences) bool {
+	return previous.DefaultAdapterID != updated.DefaultAdapterID ||
+		!slices.Equal(previous.TerminalOrder, updated.TerminalOrder) ||
+		!slices.Equal(previous.DisabledTerminalIDs, updated.DisabledTerminalIDs)
 }
 
 // ListHarnesses 返回所有助手配置
@@ -79,6 +94,7 @@ func (a *App) ChooseProjectDirectory() (domain.Project, error) {
 	created, err := a.projects.Add(path, "")
 	a.emit("projects:updated", a.projects.List())
 	a.emit("preferences:updated", a.config.Preferences())
+	a.emit("worktrees:updated", a.listAllWorktrees())
 	return created, err
 }
 
@@ -87,6 +103,8 @@ func (a *App) RemoveProject(id string) error {
 	err := a.projects.Remove(id)
 	a.emit("projects:updated", a.projects.List())
 	a.emit("preferences:updated", a.config.Preferences())
+	a.emit("sessions:updated", a.listSessions())
+	a.emit("worktrees:updated", a.listAllWorktrees())
 	return err
 }
 
@@ -162,31 +180,34 @@ func (a *App) ReorderTerminalAdapters(ids []string) ([]domain.TerminalAdapter, e
 	return adapters, err
 }
 
-// ListSessions 返回当前会话列表
-func (a *App) ListSessions() []domain.Session { return a.sessions.List() }
+// ListSessions 返回带项目展示名的当前会话列表
+func (a *App) ListSessions() []domain.Session { return a.listSessions() }
 
-// FocusSession 聚焦指定会话，必要时尝试重新打开终端
-func (a *App) FocusSession(id string) domain.ActionResult {
+// FocusSession 聚焦指定会话，必要时尝试重新打开终端，并返回最新会话列表
+func (a *App) FocusSession(id string) domain.SessionActionResult {
 	serial := a.focusSerial.Add(1)
 	s, ok := a.sessions.Get(id)
 	if !ok {
-		return domain.ActionResult{OK: false, Status: "missing", Message: "Session not found."}
+		return a.sessionActionResult(domain.ActionResult{OK: false, Status: "missing", Message: "Session not found."})
 	}
 	if s.Status == "failed" {
-		return a.reopenSession(s)
+		action := a.reopenSession(s)
+		return a.sessionActionResult(action)
 	}
 	result := a.terminals.Focus(s)
 	if serial != a.focusSerial.Load() {
-		return domain.ActionResult{OK: false, Status: "cancelled", Message: "A newer focus request superseded this one."}
+		return a.sessionActionResult(domain.ActionResult{OK: false, Status: "cancelled", Message: "A newer focus request superseded this one."})
 	}
 	if !result.OK && shouldReopenMissingTerminal(s, result.Status) {
-		return a.reopenSession(s)
+		action := a.reopenSession(s)
+		return a.sessionActionResult(action)
 	}
 	if result.OK {
 		a.sessions.UpdateStatus(id, "focused", "")
 	}
-	a.emit("sessions:updated", a.sessions.List())
-	return result
+	out := a.sessionActionResult(result)
+	a.emit("sessions:updated", out.Sessions)
+	return out
 }
 
 // shouldReopenMissingTerminal 判断会话丢失时是否允许自动重开终端
@@ -201,28 +222,33 @@ func shouldReopenMissingTerminal(s domain.Session, status string) bool {
 	}
 }
 
-// CloseSession 关闭或移除指定会话
-func (a *App) CloseSession(id string) domain.ActionResult {
+// CloseSession 关闭或移除指定会话，并返回最新会话列表
+func (a *App) CloseSession(id string) domain.SessionActionResult {
 	s, ok := a.sessions.Get(id)
 	if !ok {
-		return domain.ActionResult{OK: false, Status: "missing", Message: "Session not found."}
+		return a.sessionActionResult(domain.ActionResult{OK: false, Status: "missing", Message: "Session not found."})
 	}
 	result := a.terminals.Close(s)
 	a.sessions.Remove(id)
-	a.emit("sessions:updated", a.sessions.List())
-	return result
+	out := a.sessionActionResult(result)
+	a.emit("sessions:updated", out.Sessions)
+	return out
 }
 
-// ClearSessions 清空会话列表
-func (a *App) ClearSessions() domain.ActionResult {
+// ClearSessions 清空会话列表，并返回最新会话列表
+func (a *App) ClearSessions() domain.SessionActionResult {
 	items := a.sessions.List()
 	for _, s := range items {
 		_ = a.terminals.Close(s)
 	}
 	removed := a.sessions.Clear()
-	a.emit("sessions:updated", a.sessions.List())
-	return domain.ActionResult{OK: true, Status: "cleared", Message: fmt.Sprintf("Removed %d sessions.", len(removed))}
+	out := a.sessionActionResult(domain.ActionResult{OK: true, Status: "cleared", Message: fmt.Sprintf("Removed %d sessions.", len(removed))})
+	a.emit("sessions:updated", out.Sessions)
+	return out
 }
+
+// ListAllWorktrees 返回所有项目的 Git worktree 列表
+func (a *App) ListAllWorktrees() []domain.Worktree { return a.listAllWorktrees() }
 
 // ListWorktrees 返回项目的 Git worktree 列表
 func (a *App) ListWorktrees(projectID string) []domain.Worktree {
@@ -233,20 +259,20 @@ func (a *App) ListWorktrees(projectID string) []domain.Worktree {
 	return a.worktrees.List(project)
 }
 
-// ListWorktreeBranches 返回可用于创建 worktree 的分支列表
-func (a *App) ListWorktreeBranches(projectID string) []string {
+// ListWorktreeBranches 返回可用于创建 worktree 的分支状态
+func (a *App) ListWorktreeBranches(projectID string) domain.WorktreeBranchState {
 	project, ok := a.resolveProject(projectID)
 	if !ok {
-		return []string{}
+		return worktreeBranchState(projectID, nil)
 	}
-	return a.worktrees.Branches(project.Path)
+	return worktreeBranchState(projectID, a.worktrees.Branches(project.Path))
 }
 
-// CreateWorktree 创建新的 Git worktree
-func (a *App) CreateWorktree(req worktree.CreateRequest) (domain.Worktree, error) {
+// CreateWorktree 创建新的 Git worktree，并返回最新 worktree 列表
+func (a *App) CreateWorktree(req worktree.CreateRequest) (domain.WorktreeActionResult, error) {
 	project, ok := a.resolveProject(req.ProjectID)
 	if !ok && req.ProjectPath == "" {
-		return domain.Worktree{}, fmt.Errorf("project not found")
+		return domain.WorktreeActionResult{}, fmt.Errorf("project not found")
 	}
 	if req.ProjectPath == "" {
 		req.ProjectPath = project.Path
@@ -258,17 +284,25 @@ func (a *App) CreateWorktree(req worktree.CreateRequest) (domain.Worktree, error
 		req.BaseDir = a.worktreeBaseDir(project)
 	}
 	created, err := a.worktrees.Create(req)
-	a.emit("worktrees:updated", a.worktrees.List(project))
-	return created, err
+	if err != nil {
+		return domain.WorktreeActionResult{}, err
+	}
+	out := a.worktreeActionResultWithWorktree(
+		domain.ActionResult{OK: true, Status: "created", Message: "Worktree created."},
+		created,
+	)
+	a.emit("worktrees:updated", out.Worktrees)
+	return out, nil
 }
 
-// RemoveWorktree 删除指定 Git worktree
-func (a *App) RemoveWorktree(projectID string, path string, force bool) domain.ActionResult {
+// RemoveWorktree 删除指定 Git worktree，并返回最新 worktree 列表
+func (a *App) RemoveWorktree(projectID string, path string, force bool) domain.WorktreeActionResult {
 	project, ok := a.resolveProject(projectID)
 	if !ok {
-		return domain.ActionResult{OK: false, Status: "missing", Message: "Project not found."}
+		return a.worktreeActionResult(domain.ActionResult{OK: false, Status: "missing", Message: "Project not found."})
 	}
 	result := a.worktrees.Remove(project.Path, path, force)
-	a.emit("worktrees:updated", a.worktrees.List(project))
-	return result
+	out := a.worktreeActionResult(result)
+	a.emit("worktrees:updated", out.Worktrees)
+	return out
 }

@@ -50,6 +50,7 @@ func (a *App) openOrFocusSettingsWindow(target settingsTarget) {
 		a.settingsWindow.EmitEvent("ui:open-settings", settingsTargetPayload(target))
 		return
 	}
+	prefs := a.config.Preferences()
 	settingsWindow := a.desktop.Window.NewWithOptions(application.WebviewWindowOptions{
 		Name:                       "settings",
 		Title:                      "Siwap",
@@ -59,15 +60,19 @@ func (a *App) openOrFocusSettingsWindow(target settingsTarget) {
 		MinHeight:                  520,
 		InitialPosition:            application.WindowCentered,
 		UseApplicationMenu:         true,
-		BackgroundColour:           windowBackgroundColour(a.config.Preferences().Appearance, a.systemDarkMode()),
-		Mac:                        macWindowChrome(a.config.Preferences().Appearance),
-		Windows:                    windowsWindowChrome(a.config.Preferences().Appearance),
+		BackgroundColour:           windowBackgroundColour(prefs.Appearance, a.systemDarkMode()),
+		Mac:                        macWindowChrome(prefs.Appearance),
+		Windows:                    windowsWindowChrome(prefs.Appearance),
 		DefaultContextMenuDisabled: true,
 		URL:                        route,
 	})
-	settingsWindow.RegisterHook(events.Common.WindowClosing, func(event *application.WindowEvent) {
-		event.Cancel()
-		settingsWindow.Hide()
+	settingsWindow.RegisterHook(events.Common.WindowClosing, func(*application.WindowEvent) {
+		a.windowMu.Lock()
+		if a.settingsWindow == settingsWindow {
+			a.settingsWindow = nil
+		}
+		a.windowMu.Unlock()
+		a.applyDockPreference(a.config.Preferences().ShowDockIcon)
 	})
 	a.settingsWindow = settingsWindow
 	settingsWindow.Show()
@@ -107,8 +112,12 @@ func settingsTargetPayload(target settingsTarget) string {
 
 // CloseSettingsWindow 关闭设置窗口
 func (a *App) CloseSettingsWindow() domain.ActionResult {
-	if a.settingsWindow != nil {
-		a.settingsWindow.Hide()
+	a.windowMu.Lock()
+	settingsWindow := a.settingsWindow
+	a.settingsWindow = nil
+	a.windowMu.Unlock()
+	if settingsWindow != nil {
+		settingsWindow.Close()
 	}
 	return domain.ActionResult{OK: true, Status: "settings", Message: "Settings window closed."}
 }

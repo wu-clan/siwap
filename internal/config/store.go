@@ -109,7 +109,7 @@ func (s *Store) UpdatePreferences(next domain.Preferences) (domain.Preferences, 
 	prefs.LaunchInBackground = next.LaunchInBackground
 	prefs.WorktreeBaseDir = next.WorktreeBaseDir
 	prefs.WorktreeLocation = firstNonEmpty(next.WorktreeLocation, prefs.WorktreeLocation)
-	prefs.AutohideOnBlur = next.AutohideOnBlur
+	prefs.ShowDockIcon = next.ShowDockIcon
 	prefs.PanelWidth = positiveOr(next.PanelWidth, prefs.PanelWidth)
 	prefs.WindowWidth = positiveOr(next.WindowWidth, prefs.WindowWidth)
 	prefs.WindowHeight = positiveOr(next.WindowHeight, prefs.WindowHeight)
@@ -603,7 +603,7 @@ func defaultConfig() domain.AppConfig {
 			LaunchInBackground:      false,
 			WorktreeBaseDir:         "",
 			WorktreeLocation:        "project-parent",
-			AutohideOnBlur:          true,
+			ShowDockIcon:            false,
 			PanelWidth:              0,
 			WindowWidth:             320,
 			WindowHeight:            900,
@@ -665,9 +665,6 @@ func mergeConfig(loaded domain.AppConfig) domain.AppConfig {
 	// 以当前默认配置为基底，再覆盖用户配置，保证旧配置也能获得新增字段默认值
 	base.TerminalProfiles = cloneProfiles(loaded.TerminalProfiles)
 	base.Preferences = mergePreferences(base.Preferences, loaded.Preferences)
-	if loadedVersion < 2 {
-		base.Preferences.AutohideOnBlur = true
-	}
 	if loadedVersion < 3 && isLegacyDefaultShortcut(loaded.Preferences.GlobalShortcut) {
 		base.Preferences.GlobalShortcut = defaultShortcut()
 	}
@@ -699,7 +696,7 @@ func mergePreferences(base domain.Preferences, loaded domain.Preferences) domain
 	base.LaunchInBackground = loaded.LaunchInBackground
 	base.WorktreeBaseDir = loaded.WorktreeBaseDir
 	base.WorktreeLocation = firstNonEmpty(loaded.WorktreeLocation, base.WorktreeLocation)
-	base.AutohideOnBlur = loaded.AutohideOnBlur
+	base.ShowDockIcon = loaded.ShowDockIcon
 	base.PanelWidth = positiveOr(loaded.PanelWidth, base.PanelWidth)
 	base.WindowWidth = positiveOr(loaded.WindowWidth, base.WindowWidth)
 	base.WindowHeight = positiveOr(loaded.WindowHeight, base.WindowHeight)

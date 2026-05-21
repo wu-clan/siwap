@@ -10,8 +10,8 @@ import (
 	"siwap/internal/terminal"
 )
 
-// LaunchSession 根据前端传入的请求启动一个新的助手终端会话
-func (a *App) LaunchSession(req session.LaunchRequest) domain.Session {
+// LaunchSession 根据前端传入的请求启动一个新的助手终端会话，并返回最新会话列表
+func (a *App) LaunchSession(req session.LaunchRequest) domain.SessionActionResult {
 	prepared := a.prepareLaunch(req)
 	sessionEnv := terminal.SessionID()
 	// 注入会话 ID，后续聚焦、关闭、重开终端时都通过它识别同一个会话
@@ -34,13 +34,19 @@ func (a *App) LaunchSession(req session.LaunchRequest) domain.Session {
 	}, a.config.ListTerminalProfiles())
 	if err != nil {
 		created := a.sessions.MarkError(prepared, err, sessionEnv)
-		a.emit("sessions:updated", a.sessions.List())
-		return created
+		result := a.sessionActionResultWithSession(
+			domain.ActionResult{OK: false, Status: "failed", Message: err.Error()},
+			created,
+		)
+		a.emit("sessions:updated", result.Sessions)
+		return result
 	}
 	result.Ref.ProcessTreePIDs = process.TreePIDs(result.PID)
 	created := a.sessions.Create(prepared, result, sessionEnv)
-	a.emit("sessions:updated", a.sessions.List())
-	return created
+	action := domain.ActionResult{OK: true, Status: result.Status, Message: "Session launched."}
+	out := a.sessionActionResultWithSession(action, created)
+	a.emit("sessions:updated", out.Sessions)
+	return out
 }
 
 // reopenSession 使用原始会话信息重新打开终端
@@ -64,12 +70,12 @@ func (a *App) reopenSession(existing domain.Session) domain.ActionResult {
 	}, a.config.ListTerminalProfiles())
 	if err != nil {
 		a.sessions.UpdateStatus(existing.ID, "failed", err.Error())
-		a.emit("sessions:updated", a.sessions.List())
+		a.emit("sessions:updated", a.listSessions())
 		return domain.ActionResult{OK: false, Status: "failed", Message: err.Error()}
 	}
 	result.Ref.ProcessTreePIDs = process.TreePIDs(result.PID)
 	a.sessions.UpdateLaunch(existing.ID, result, sessionEnv)
-	a.emit("sessions:updated", a.sessions.List())
+	a.emit("sessions:updated", a.listSessions())
 	return domain.ActionResult{OK: true, Status: "reopened", Message: "Session terminal reopened."}
 }
 

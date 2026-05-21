@@ -14,6 +14,7 @@ import type { Preferences } from '../../domain/types'
 
 defineProps<{
   preferences: Preferences
+  platform: string
 }>()
 
 const emit = defineEmits<{
@@ -27,6 +28,40 @@ const { t } = useI18n({ useScope: 'global' })
 
 function changeStringPreference(key: keyof Preferences, event: Event) {
   emit('change-preference', key, (event.target as HTMLInputElement | HTMLSelectElement).value)
+}
+
+function handleShortcutKeydown(event: KeyboardEvent) {
+  const shortcut = shortcutFromKeyboardEvent(event)
+  if (!shortcut) return
+  event.preventDefault()
+  emit('change-preference', 'globalShortcut', shortcut)
+}
+
+function shortcutFromKeyboardEvent(event: KeyboardEvent) {
+  const key = normalizeShortcutKey(event.code, event.key)
+  if (!key) return ''
+  const modifiers: string[] = []
+  if (event.ctrlKey) modifiers.push('Control')
+  if (event.metaKey) modifiers.push('Command')
+  if (event.altKey) modifiers.push('Alt')
+  if (event.shiftKey) modifiers.push('Shift')
+  if (modifiers.length === 0) return ''
+  return [...modifiers, key].join('+')
+}
+
+function normalizeShortcutKey(code: string, key: string) {
+  if (/^Key[A-Z]$/.test(code)) return code.slice(3)
+  if (/^Digit[0-9]$/.test(code)) return code.slice(5)
+  if (/^Numpad[0-9]$/.test(code)) return code.slice(7)
+  if (/^F\d{1,2}$/.test(code)) return code
+  if (code === 'Space') return 'Space'
+  const lowered = key.toLowerCase()
+  if (lowered === 'spacebar') return 'Space'
+  if (['tab', 'escape', 'enter'].includes(lowered)) return ''
+  if (key.length === 1 && /[a-z0-9]/i.test(key)) {
+    return key.toUpperCase()
+  }
+  return ''
 }
 </script>
 
@@ -65,6 +100,7 @@ function changeStringPreference(key: keyof Preferences, event: Event) {
         <Input
           :value="preferences.globalShortcut"
           placeholder="Control+Command+S"
+          @keydown="handleShortcutKeydown"
           @change="changeStringPreference('globalShortcut', $event)"
         />
       </label>
@@ -77,12 +113,12 @@ function changeStringPreference(key: keyof Preferences, event: Event) {
         />
         {{ t('settings.alwaysOnTop') }}</label
       >
-      <label
+      <label v-if="platform === 'darwin'"
         ><Switch
-          :model-value="preferences.autohideOnBlur"
-          @update:model-value="emit('change-preference', 'autohideOnBlur', $event)"
+          :model-value="preferences.showDockIcon"
+          @update:model-value="emit('change-preference', 'showDockIcon', $event)"
         />
-        {{ t('settings.hideOnBlur') }}</label
+        {{ t('settings.showDockIcon') }}</label
       >
     </div>
     <div class="settings-actions">

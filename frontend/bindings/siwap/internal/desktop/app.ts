@@ -37,18 +37,18 @@ export function ChooseTerminalExecutable(): $CancellablePromise<string> {
 }
 
 /**
- * ClearSessions 清空会话列表
+ * ClearSessions 清空会话列表，并返回最新会话列表
  */
-export function ClearSessions(): $CancellablePromise<domain$0.ActionResult> {
+export function ClearSessions(): $CancellablePromise<domain$0.SessionActionResult> {
     return $Call.ByID(1581048421).then(($result: any) => {
         return $$createType1($result);
     });
 }
 
 /**
- * CloseSession 关闭或移除指定会话
+ * CloseSession 关闭或移除指定会话，并返回最新会话列表
  */
-export function CloseSession(id: string): $CancellablePromise<domain$0.ActionResult> {
+export function CloseSession(id: string): $CancellablePromise<domain$0.SessionActionResult> {
     return $Call.ByID(773215935, id).then(($result: any) => {
         return $$createType1($result);
     });
@@ -59,7 +59,7 @@ export function CloseSession(id: string): $CancellablePromise<domain$0.ActionRes
  */
 export function CloseSettingsWindow(): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(2709661388).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
 }
 
@@ -68,23 +68,23 @@ export function CloseSettingsWindow(): $CancellablePromise<domain$0.ActionResult
  */
 export function CreateHarness(next: domain$0.Harness): $CancellablePromise<domain$0.Harness> {
     return $Call.ByID(1928421377, next).then(($result: any) => {
-        return $$createType2($result);
-    });
-}
-
-/**
- * CreateWorktree 创建新的 Git worktree
- */
-export function CreateWorktree(req: worktree$0.CreateRequest): $CancellablePromise<domain$0.Worktree> {
-    return $Call.ByID(1479407878, req).then(($result: any) => {
         return $$createType3($result);
     });
 }
 
 /**
- * FocusSession 聚焦指定会话，必要时尝试重新打开终端
+ * CreateWorktree 创建新的 Git worktree，并返回最新 worktree 列表
  */
-export function FocusSession(id: string): $CancellablePromise<domain$0.ActionResult> {
+export function CreateWorktree(req: worktree$0.CreateRequest): $CancellablePromise<domain$0.WorktreeActionResult> {
+    return $Call.ByID(1479407878, req).then(($result: any) => {
+        return $$createType4($result);
+    });
+}
+
+/**
+ * FocusSession 聚焦指定会话，必要时尝试重新打开终端，并返回最新会话列表
+ */
+export function FocusSession(id: string): $CancellablePromise<domain$0.SessionActionResult> {
     return $Call.ByID(2280795835, id).then(($result: any) => {
         return $$createType1($result);
     });
@@ -95,7 +95,7 @@ export function FocusSession(id: string): $CancellablePromise<domain$0.ActionRes
  */
 export function GetBootstrap(): $CancellablePromise<domain$0.Bootstrap> {
     return $Call.ByID(96701757).then(($result: any) => {
-        return $$createType4($result);
+        return $$createType5($result);
     });
 }
 
@@ -111,7 +111,7 @@ export function GetInitialSettingsSection(): $CancellablePromise<string> {
  */
 export function GetPreferences(): $CancellablePromise<domain$0.Preferences> {
     return $Call.ByID(409643873).then(($result: any) => {
-        return $$createType5($result);
+        return $$createType6($result);
     });
 }
 
@@ -127,16 +127,25 @@ export function GetWindowRole(): $CancellablePromise<string> {
  */
 export function HideWindow(): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(197083831).then(($result: any) => {
+        return $$createType2($result);
+    });
+}
+
+/**
+ * LaunchSession 根据前端传入的请求启动一个新的助手终端会话，并返回最新会话列表
+ */
+export function LaunchSession(req: session$0.LaunchRequest): $CancellablePromise<domain$0.SessionActionResult> {
+    return $Call.ByID(1182409108, req).then(($result: any) => {
         return $$createType1($result);
     });
 }
 
 /**
- * LaunchSession 根据前端传入的请求启动一个新的助手终端会话
+ * ListAllWorktrees 返回所有项目的 Git worktree 列表
  */
-export function LaunchSession(req: session$0.LaunchRequest): $CancellablePromise<domain$0.Session> {
-    return $Call.ByID(1182409108, req).then(($result: any) => {
-        return $$createType6($result);
+export function ListAllWorktrees(): $CancellablePromise<domain$0.Worktree[]> {
+    return $Call.ByID(3995349184).then(($result: any) => {
+        return $$createType8($result);
     });
 }
 
@@ -145,7 +154,7 @@ export function LaunchSession(req: session$0.LaunchRequest): $CancellablePromise
  */
 export function ListHarnesses(): $CancellablePromise<domain$0.Harness[]> {
     return $Call.ByID(3733684909).then(($result: any) => {
-        return $$createType7($result);
+        return $$createType9($result);
     });
 }
 
@@ -154,16 +163,16 @@ export function ListHarnesses(): $CancellablePromise<domain$0.Harness[]> {
  */
 export function ListProjects(): $CancellablePromise<domain$0.Project[]> {
     return $Call.ByID(2940915421).then(($result: any) => {
-        return $$createType8($result);
+        return $$createType10($result);
     });
 }
 
 /**
- * ListSessions 返回当前会话列表
+ * ListSessions 返回带项目展示名的当前会话列表
  */
 export function ListSessions(): $CancellablePromise<domain$0.Session[]> {
     return $Call.ByID(4136909550).then(($result: any) => {
-        return $$createType9($result);
+        return $$createType12($result);
     });
 }
 
@@ -172,7 +181,7 @@ export function ListSessions(): $CancellablePromise<domain$0.Session[]> {
  */
 export function ListTerminalAdapters(): $CancellablePromise<domain$0.TerminalAdapter[]> {
     return $Call.ByID(1764859963).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType14($result);
     });
 }
 
@@ -181,16 +190,16 @@ export function ListTerminalAdapters(): $CancellablePromise<domain$0.TerminalAda
  */
 export function ListTerminalProfiles(): $CancellablePromise<domain$0.TerminalProfile[]> {
     return $Call.ByID(960278845).then(($result: any) => {
-        return $$createType13($result);
+        return $$createType16($result);
     });
 }
 
 /**
- * ListWorktreeBranches 返回可用于创建 worktree 的分支列表
+ * ListWorktreeBranches 返回可用于创建 worktree 的分支状态
  */
-export function ListWorktreeBranches(projectID: string): $CancellablePromise<string[]> {
+export function ListWorktreeBranches(projectID: string): $CancellablePromise<domain$0.WorktreeBranchState> {
     return $Call.ByID(800837838, projectID).then(($result: any) => {
-        return $$createType14($result);
+        return $$createType17($result);
     });
 }
 
@@ -199,7 +208,7 @@ export function ListWorktreeBranches(projectID: string): $CancellablePromise<str
  */
 export function ListWorktrees(projectID: string): $CancellablePromise<domain$0.Worktree[]> {
     return $Call.ByID(2638225679, projectID).then(($result: any) => {
-        return $$createType15($result);
+        return $$createType8($result);
     });
 }
 
@@ -208,7 +217,7 @@ export function ListWorktrees(projectID: string): $CancellablePromise<domain$0.W
  */
 export function OpenSettingsDialog(): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(3196645606).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
 }
 
@@ -217,7 +226,7 @@ export function OpenSettingsDialog(): $CancellablePromise<domain$0.ActionResult>
  */
 export function OpenSettingsSection(section: string): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(258372105, section).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
 }
 
@@ -226,7 +235,7 @@ export function OpenSettingsSection(section: string): $CancellablePromise<domain
  */
 export function Quit(): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(310506672).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
 }
 
@@ -252,11 +261,11 @@ export function RemoveTerminalProfile(id: string): $CancellablePromise<void> {
 }
 
 /**
- * RemoveWorktree 删除指定 Git worktree
+ * RemoveWorktree 删除指定 Git worktree，并返回最新 worktree 列表
  */
-export function RemoveWorktree(projectID: string, path: string, force: boolean): $CancellablePromise<domain$0.ActionResult> {
+export function RemoveWorktree(projectID: string, path: string, force: boolean): $CancellablePromise<domain$0.WorktreeActionResult> {
     return $Call.ByID(1103833882, projectID, path, force).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType4($result);
     });
 }
 
@@ -265,7 +274,7 @@ export function RemoveWorktree(projectID: string, path: string, force: boolean):
  */
 export function ReorderHarnesses(ids: string[]): $CancellablePromise<domain$0.Harness[]> {
     return $Call.ByID(3075841878, ids).then(($result: any) => {
-        return $$createType7($result);
+        return $$createType9($result);
     });
 }
 
@@ -274,7 +283,7 @@ export function ReorderHarnesses(ids: string[]): $CancellablePromise<domain$0.Ha
  */
 export function ReorderProjects(ids: string[]): $CancellablePromise<domain$0.Project[]> {
     return $Call.ByID(1026356684, ids).then(($result: any) => {
-        return $$createType8($result);
+        return $$createType10($result);
     });
 }
 
@@ -283,7 +292,7 @@ export function ReorderProjects(ids: string[]): $CancellablePromise<domain$0.Pro
  */
 export function ReorderTerminalAdapters(ids: string[]): $CancellablePromise<domain$0.TerminalAdapter[]> {
     return $Call.ByID(419985346, ids).then(($result: any) => {
-        return $$createType11($result);
+        return $$createType14($result);
     });
 }
 
@@ -292,7 +301,7 @@ export function ReorderTerminalAdapters(ids: string[]): $CancellablePromise<doma
  */
 export function ResetSidebarWindow(): $CancellablePromise<domain$0.WindowState> {
     return $Call.ByID(4245109158).then(($result: any) => {
-        return $$createType16($result);
+        return $$createType18($result);
     });
 }
 
@@ -301,7 +310,7 @@ export function ResetSidebarWindow(): $CancellablePromise<domain$0.WindowState> 
  */
 export function RunAction(action: string): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(1521377898, action).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
 }
 
@@ -328,7 +337,7 @@ export function SetDefaultProject(id: string): $CancellablePromise<domain$0.Proj
  */
 export function ShowWindow(): $CancellablePromise<domain$0.ActionResult> {
     return $Call.ByID(1953061286).then(($result: any) => {
-        return $$createType1($result);
+        return $$createType2($result);
     });
 }
 
@@ -337,7 +346,7 @@ export function ShowWindow(): $CancellablePromise<domain$0.ActionResult> {
  */
 export function ToggleAlwaysOnTop(): $CancellablePromise<domain$0.WindowState> {
     return $Call.ByID(2286002874).then(($result: any) => {
-        return $$createType16($result);
+        return $$createType18($result);
     });
 }
 
@@ -346,7 +355,7 @@ export function ToggleAlwaysOnTop(): $CancellablePromise<domain$0.WindowState> {
  */
 export function UpdateHarness(next: domain$0.Harness): $CancellablePromise<domain$0.Harness> {
     return $Call.ByID(2011914430, next).then(($result: any) => {
-        return $$createType2($result);
+        return $$createType3($result);
     });
 }
 
@@ -355,7 +364,7 @@ export function UpdateHarness(next: domain$0.Harness): $CancellablePromise<domai
  */
 export function UpdatePreferences(prefs: domain$0.Preferences): $CancellablePromise<domain$0.Preferences> {
     return $Call.ByID(834007532, prefs).then(($result: any) => {
-        return $$createType5($result);
+        return $$createType6($result);
     });
 }
 
@@ -364,25 +373,27 @@ export function UpdatePreferences(prefs: domain$0.Preferences): $CancellableProm
  */
 export function UpsertTerminalProfile(profile: domain$0.TerminalProfile): $CancellablePromise<domain$0.TerminalProfile> {
     return $Call.ByID(3965059209, profile).then(($result: any) => {
-        return $$createType12($result);
+        return $$createType15($result);
     });
 }
 
 // Private type creation functions
 const $$createType0 = domain$0.Project.createFrom;
-const $$createType1 = domain$0.ActionResult.createFrom;
-const $$createType2 = domain$0.Harness.createFrom;
-const $$createType3 = domain$0.Worktree.createFrom;
-const $$createType4 = domain$0.Bootstrap.createFrom;
-const $$createType5 = domain$0.Preferences.createFrom;
-const $$createType6 = domain$0.Session.createFrom;
-const $$createType7 = $Create.Array($$createType2);
-const $$createType8 = $Create.Array($$createType0);
-const $$createType9 = $Create.Array($$createType6);
-const $$createType10 = domain$0.TerminalAdapter.createFrom;
-const $$createType11 = $Create.Array($$createType10);
-const $$createType12 = domain$0.TerminalProfile.createFrom;
-const $$createType13 = $Create.Array($$createType12);
-const $$createType14 = $Create.Array($Create.Any);
-const $$createType15 = $Create.Array($$createType3);
-const $$createType16 = domain$0.WindowState.createFrom;
+const $$createType1 = domain$0.SessionActionResult.createFrom;
+const $$createType2 = domain$0.ActionResult.createFrom;
+const $$createType3 = domain$0.Harness.createFrom;
+const $$createType4 = domain$0.WorktreeActionResult.createFrom;
+const $$createType5 = domain$0.Bootstrap.createFrom;
+const $$createType6 = domain$0.Preferences.createFrom;
+const $$createType7 = domain$0.Worktree.createFrom;
+const $$createType8 = $Create.Array($$createType7);
+const $$createType9 = $Create.Array($$createType3);
+const $$createType10 = $Create.Array($$createType0);
+const $$createType11 = domain$0.Session.createFrom;
+const $$createType12 = $Create.Array($$createType11);
+const $$createType13 = domain$0.TerminalAdapter.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = domain$0.TerminalProfile.createFrom;
+const $$createType16 = $Create.Array($$createType15);
+const $$createType17 = domain$0.WorktreeBranchState.createFrom;
+const $$createType18 = domain$0.WindowState.createFrom;

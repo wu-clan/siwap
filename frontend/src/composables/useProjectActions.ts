@@ -14,6 +14,7 @@ type Run = <T>(label: string, fn: () => Promise<T>) => Promise<T | undefined>
 type Translate = (key: string, named?: Record<string, unknown>) => string
 type Confirm = (description: string) => Promise<boolean>
 
+/** useProjectActions 封装项目选择、默认项目、排序和删除等用户操作 */
 export function useProjectActions(options: {
   preferences: Ref<Preferences>
   projects: Ref<Project[]>
@@ -22,8 +23,6 @@ export function useProjectActions(options: {
   settingsSection: Ref<SettingsSection>
   run: Run
   t: Translate
-  refreshBootstrap: () => Promise<void>
-  refreshWorktrees: () => Promise<void>
   preserveSessionSelection: () => void
   openSettings: (section?: SettingsSection) => Promise<void>
   projectName: (project: Project) => string
@@ -37,8 +36,6 @@ export function useProjectActions(options: {
     settingsSection,
     run,
     t,
-    refreshBootstrap,
-    refreshWorktrees,
     preserveSessionSelection,
     openSettings,
     projectName,
@@ -55,7 +52,6 @@ export function useProjectActions(options: {
       () => ChooseProjectDirectory() as unknown as Promise<Project>,
     )
     if (!created) return
-    await refreshBootstrap()
     settingsSection.value = 'projects'
   }
 
@@ -74,9 +70,9 @@ export function useProjectActions(options: {
       if (!selected) return
       preferences.value.selectedProjectId = selected.id
     }
+    // 项目切换后 worktree 和会话选择都不再沿用，具体列表由后端事件同步
     selectedWorktreePath.value = ''
     selectedSessionId.value = ''
-    await refreshWorktrees()
     preserveSessionSelection()
   }
 
@@ -85,7 +81,6 @@ export function useProjectActions(options: {
       'action.setDefaultProject',
       () => SetDefaultProject(id) as unknown as Promise<Project>,
     )
-    await refreshBootstrap()
   }
 
   async function removeProject(project: Project) {
@@ -95,7 +90,6 @@ export function useProjectActions(options: {
       selectedWorktreePath.value = ''
       selectedSessionId.value = ''
     }
-    await refreshBootstrap()
   }
 
   async function reorderProjects(ids: string[]) {

@@ -13,7 +13,7 @@ export type Preferences = {
   launchInBackground: boolean
   worktreeBaseDir: string
   worktreeLocation: string
-  autohideOnBlur: boolean
+  showDockIcon: boolean
   panelWidth: number
   windowWidth: number
   windowHeight: number
@@ -96,6 +96,7 @@ export type Session = {
   id: string
   harnessId: string
   projectId?: string
+  projectName?: string
   adapterId: string
   title: string
   command: string
@@ -126,8 +127,21 @@ export type Worktree = {
   createdAt?: string
 }
 export type ActionResult = { ok: boolean; status: string; message: string }
+export type SessionActionResult = { action: ActionResult; session: Session; sessions: Session[] }
+export type WorktreeActionResult = {
+  action: ActionResult
+  worktree: Worktree
+  worktrees: Worktree[]
+}
+export type WorktreeBranchState = {
+  projectId: string
+  branches: string[]
+  defaultBaseBranch: string
+}
 export type WindowState = { width: number; height: number; alwaysOnTop: boolean; mode: string }
 export type Bootstrap = {
+  version: string
+  platform: string
   summary: Summary
   configPath: string
   preferences: Preferences
@@ -136,6 +150,7 @@ export type Bootstrap = {
   terminalProfiles: TerminalProfile[]
   adapters: TerminalAdapter[]
   sessions: Session[]
+  worktrees: Worktree[]
 }
 export type LaunchRequest = {
   harnessId: string

@@ -90,6 +90,7 @@ export class AppSummary {
  */
 export class Bootstrap {
     "version": string;
+    "platform": string;
     "summary": AppSummary;
     "configPath": string;
     "preferences": Preferences;
@@ -98,11 +99,15 @@ export class Bootstrap {
     "terminalProfiles": TerminalProfile[];
     "adapters": TerminalAdapter[];
     "sessions": Session[];
+    "worktrees": Worktree[];
 
     /** Creates a new Bootstrap instance. */
     constructor($$source: Partial<Bootstrap> = {}) {
         if (!("version" in $$source)) {
             this["version"] = "";
+        }
+        if (!("platform" in $$source)) {
+            this["platform"] = "";
         }
         if (!("summary" in $$source)) {
             this["summary"] = (new AppSummary());
@@ -128,6 +133,9 @@ export class Bootstrap {
         if (!("sessions" in $$source)) {
             this["sessions"] = [];
         }
+        if (!("worktrees" in $$source)) {
+            this["worktrees"] = [];
+        }
 
         Object.assign(this, $$source);
     }
@@ -136,34 +144,38 @@ export class Bootstrap {
      * Creates a new Bootstrap instance from a string or object.
      */
     static createFrom($$source: any = {}): Bootstrap {
-        const $$createField1_0 = $$createType1;
-        const $$createField3_0 = $$createType2;
-        const $$createField4_0 = $$createType4;
-        const $$createField5_0 = $$createType6;
-        const $$createField6_0 = $$createType8;
-        const $$createField7_0 = $$createType10;
-        const $$createField8_0 = $$createType12;
+        const $$createField2_0 = $$createType1;
+        const $$createField4_0 = $$createType2;
+        const $$createField5_0 = $$createType4;
+        const $$createField6_0 = $$createType6;
+        const $$createField7_0 = $$createType8;
+        const $$createField8_0 = $$createType10;
+        const $$createField9_0 = $$createType12;
+        const $$createField10_0 = $$createType14;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("summary" in $$parsedSource) {
-            $$parsedSource["summary"] = $$createField1_0($$parsedSource["summary"]);
+            $$parsedSource["summary"] = $$createField2_0($$parsedSource["summary"]);
         }
         if ("preferences" in $$parsedSource) {
-            $$parsedSource["preferences"] = $$createField3_0($$parsedSource["preferences"]);
+            $$parsedSource["preferences"] = $$createField4_0($$parsedSource["preferences"]);
         }
         if ("harnesses" in $$parsedSource) {
-            $$parsedSource["harnesses"] = $$createField4_0($$parsedSource["harnesses"]);
+            $$parsedSource["harnesses"] = $$createField5_0($$parsedSource["harnesses"]);
         }
         if ("projects" in $$parsedSource) {
-            $$parsedSource["projects"] = $$createField5_0($$parsedSource["projects"]);
+            $$parsedSource["projects"] = $$createField6_0($$parsedSource["projects"]);
         }
         if ("terminalProfiles" in $$parsedSource) {
-            $$parsedSource["terminalProfiles"] = $$createField6_0($$parsedSource["terminalProfiles"]);
+            $$parsedSource["terminalProfiles"] = $$createField7_0($$parsedSource["terminalProfiles"]);
         }
         if ("adapters" in $$parsedSource) {
-            $$parsedSource["adapters"] = $$createField7_0($$parsedSource["adapters"]);
+            $$parsedSource["adapters"] = $$createField8_0($$parsedSource["adapters"]);
         }
         if ("sessions" in $$parsedSource) {
-            $$parsedSource["sessions"] = $$createField8_0($$parsedSource["sessions"]);
+            $$parsedSource["sessions"] = $$createField9_0($$parsedSource["sessions"]);
+        }
+        if ("worktrees" in $$parsedSource) {
+            $$parsedSource["worktrees"] = $$createField10_0($$parsedSource["worktrees"]);
         }
         return new Bootstrap($$parsedSource as Partial<Bootstrap>);
     }
@@ -224,8 +236,8 @@ export class Harness {
      * Creates a new Harness instance from a string or object.
      */
     static createFrom($$source: any = {}): Harness {
-        const $$createField8_0 = $$createType13;
-        const $$createField9_0 = $$createType15;
+        const $$createField8_0 = $$createType15;
+        const $$createField9_0 = $$createType17;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("flags" in $$parsedSource) {
             $$parsedSource["flags"] = $$createField8_0($$parsedSource["flags"]);
@@ -302,7 +314,7 @@ export class Preferences {
     "launchInBackground": boolean;
     "worktreeBaseDir": string;
     "worktreeLocation": string;
-    "autohideOnBlur": boolean;
+    "showDockIcon": boolean;
     "panelWidth": number;
     "windowWidth": number;
     "windowHeight": number;
@@ -352,8 +364,8 @@ export class Preferences {
         if (!("worktreeLocation" in $$source)) {
             this["worktreeLocation"] = "";
         }
-        if (!("autohideOnBlur" in $$source)) {
-            this["autohideOnBlur"] = false;
+        if (!("showDockIcon" in $$source)) {
+            this["showDockIcon"] = false;
         }
         if (!("panelWidth" in $$source)) {
             this["panelWidth"] = 0;
@@ -442,6 +454,7 @@ export class Session {
     "id": string;
     "harnessId": string;
     "projectId"?: string;
+    "projectName"?: string;
     "adapterId": string;
     "title": string;
     "command": string;
@@ -510,12 +523,56 @@ export class Session {
      * Creates a new Session instance from a string or object.
      */
     static createFrom($$source: any = {}): Session {
-        const $$createField17_0 = $$createType16;
+        const $$createField18_0 = $$createType18;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("ref" in $$parsedSource) {
-            $$parsedSource["ref"] = $$createField17_0($$parsedSource["ref"]);
+            $$parsedSource["ref"] = $$createField18_0($$parsedSource["ref"]);
         }
         return new Session($$parsedSource as Partial<Session>);
+    }
+}
+
+/**
+ * SessionActionResult 返回会话动作结果和最新会话列表，避免前端再发起刷新请求
+ */
+export class SessionActionResult {
+    "action": ActionResult;
+    "session": Session;
+    "sessions": Session[];
+
+    /** Creates a new SessionActionResult instance. */
+    constructor($$source: Partial<SessionActionResult> = {}) {
+        if (!("action" in $$source)) {
+            this["action"] = (new ActionResult());
+        }
+        if (!("session" in $$source)) {
+            this["session"] = (new Session());
+        }
+        if (!("sessions" in $$source)) {
+            this["sessions"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new SessionActionResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): SessionActionResult {
+        const $$createField0_0 = $$createType19;
+        const $$createField1_0 = $$createType11;
+        const $$createField2_0 = $$createType12;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("action" in $$parsedSource) {
+            $$parsedSource["action"] = $$createField0_0($$parsedSource["action"]);
+        }
+        if ("session" in $$parsedSource) {
+            $$parsedSource["session"] = $$createField1_0($$parsedSource["session"]);
+        }
+        if ("sessions" in $$parsedSource) {
+            $$parsedSource["sessions"] = $$createField2_0($$parsedSource["sessions"]);
+        }
+        return new SessionActionResult($$parsedSource as Partial<SessionActionResult>);
     }
 }
 
@@ -568,7 +625,7 @@ export class TerminalAdapter {
      * Creates a new TerminalAdapter instance from a string or object.
      */
     static createFrom($$source: any = {}): TerminalAdapter {
-        const $$createField9_0 = $$createType18;
+        const $$createField9_0 = $$createType21;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("capabilities" in $$parsedSource) {
             $$parsedSource["capabilities"] = $$createField9_0($$parsedSource["capabilities"]);
@@ -721,7 +778,7 @@ export class TerminalSessionRef {
      * Creates a new TerminalSessionRef instance from a string or object.
      */
     static createFrom($$source: any = {}): TerminalSessionRef {
-        const $$createField3_0 = $$createType19;
+        const $$createField3_0 = $$createType22;
         const $$createField10_0 = $$createType0;
         let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
         if ("processTreePids" in $$parsedSource) {
@@ -825,6 +882,86 @@ export class Worktree {
     }
 }
 
+/**
+ * WorktreeActionResult 返回 worktree 动作结果和最新 worktree 列表，避免前端再发起刷新请求
+ */
+export class WorktreeActionResult {
+    "action": ActionResult;
+    "worktree": Worktree;
+    "worktrees": Worktree[];
+
+    /** Creates a new WorktreeActionResult instance. */
+    constructor($$source: Partial<WorktreeActionResult> = {}) {
+        if (!("action" in $$source)) {
+            this["action"] = (new ActionResult());
+        }
+        if (!("worktree" in $$source)) {
+            this["worktree"] = (new Worktree());
+        }
+        if (!("worktrees" in $$source)) {
+            this["worktrees"] = [];
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WorktreeActionResult instance from a string or object.
+     */
+    static createFrom($$source: any = {}): WorktreeActionResult {
+        const $$createField0_0 = $$createType19;
+        const $$createField1_0 = $$createType13;
+        const $$createField2_0 = $$createType14;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("action" in $$parsedSource) {
+            $$parsedSource["action"] = $$createField0_0($$parsedSource["action"]);
+        }
+        if ("worktree" in $$parsedSource) {
+            $$parsedSource["worktree"] = $$createField1_0($$parsedSource["worktree"]);
+        }
+        if ("worktrees" in $$parsedSource) {
+            $$parsedSource["worktrees"] = $$createField2_0($$parsedSource["worktrees"]);
+        }
+        return new WorktreeActionResult($$parsedSource as Partial<WorktreeActionResult>);
+    }
+}
+
+/**
+ * WorktreeBranchState 返回创建 worktree 所需的分支状态
+ */
+export class WorktreeBranchState {
+    "projectId": string;
+    "branches": string[];
+    "defaultBaseBranch": string;
+
+    /** Creates a new WorktreeBranchState instance. */
+    constructor($$source: Partial<WorktreeBranchState> = {}) {
+        if (!("projectId" in $$source)) {
+            this["projectId"] = "";
+        }
+        if (!("branches" in $$source)) {
+            this["branches"] = [];
+        }
+        if (!("defaultBaseBranch" in $$source)) {
+            this["defaultBaseBranch"] = "";
+        }
+
+        Object.assign(this, $$source);
+    }
+
+    /**
+     * Creates a new WorktreeBranchState instance from a string or object.
+     */
+    static createFrom($$source: any = {}): WorktreeBranchState {
+        const $$createField1_0 = $$createType0;
+        let $$parsedSource = typeof $$source === 'string' ? JSON.parse($$source) : $$source;
+        if ("branches" in $$parsedSource) {
+            $$parsedSource["branches"] = $$createField1_0($$parsedSource["branches"]);
+        }
+        return new WorktreeBranchState($$parsedSource as Partial<WorktreeBranchState>);
+    }
+}
+
 // Private type creation functions
 const $$createType0 = $Create.Array($Create.Any);
 const $$createType1 = AppSummary.createFrom;
@@ -839,10 +976,13 @@ const $$createType9 = TerminalAdapter.createFrom;
 const $$createType10 = $Create.Array($$createType9);
 const $$createType11 = Session.createFrom;
 const $$createType12 = $Create.Array($$createType11);
-const $$createType13 = $Create.Map($Create.Any, $Create.Any);
-const $$createType14 = HarnessFlag.createFrom;
-const $$createType15 = $Create.Array($$createType14);
-const $$createType16 = TerminalSessionRef.createFrom;
-const $$createType17 = TerminalCapability.createFrom;
-const $$createType18 = $Create.Array($$createType17);
-const $$createType19 = $Create.Array($Create.Any);
+const $$createType13 = Worktree.createFrom;
+const $$createType14 = $Create.Array($$createType13);
+const $$createType15 = $Create.Map($Create.Any, $Create.Any);
+const $$createType16 = HarnessFlag.createFrom;
+const $$createType17 = $Create.Array($$createType16);
+const $$createType18 = TerminalSessionRef.createFrom;
+const $$createType19 = ActionResult.createFrom;
+const $$createType20 = TerminalCapability.createFrom;
+const $$createType21 = $Create.Array($$createType20);
+const $$createType22 = $Create.Array($Create.Any);

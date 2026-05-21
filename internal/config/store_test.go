@@ -51,6 +51,32 @@ func TestMergePreferencesPreservesWindowPosition(t *testing.T) {
 	}
 }
 
+// TestDefaultWindowTogglesAreDisabled 验证窗口相关开关默认关闭
+func TestDefaultWindowTogglesAreDisabled(t *testing.T) {
+	store := testStore(t)
+	prefs := store.Preferences()
+	if prefs.AlwaysOnTop {
+		t.Fatal("AlwaysOnTop should be disabled by default")
+	}
+	if prefs.ShowDockIcon {
+		t.Fatal("ShowDockIcon should be disabled by default")
+	}
+}
+
+// TestUpdatePreferencesCanToggleDockIcon 验证 Dock 图标显示偏好可保存
+func TestUpdatePreferencesCanToggleDockIcon(t *testing.T) {
+	store := testStore(t)
+	prefs := store.Preferences()
+	prefs.ShowDockIcon = true
+	updated, err := store.UpdatePreferences(prefs)
+	if err != nil {
+		t.Fatalf("UpdatePreferences returned error: %v", err)
+	}
+	if !updated.ShowDockIcon {
+		t.Fatal("ShowDockIcon=true should be preserved")
+	}
+}
+
 // TestUpdatePreferencesCanClearSavedWindowPosition 验证对应功能行为
 func TestUpdatePreferencesCanClearSavedWindowPosition(t *testing.T) {
 	store := testStore(t)

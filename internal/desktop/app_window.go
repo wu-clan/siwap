@@ -24,6 +24,7 @@ func (a *App) showWindowLocked() domain.ActionResult {
 	a.mainWindow.Show()
 	a.mainWindow.Restore()
 	a.mainWindow.Focus()
+	a.deferShowDockIcon()
 	return domain.ActionResult{OK: true, Status: "shown", Message: "Window shown."}
 }
 
@@ -34,6 +35,19 @@ func (a *App) HideWindow() domain.ActionResult {
 	return a.hideWindowLocked()
 }
 
+// toggleWindow 在状态栏图标点击时显示或隐藏主窗口
+func (a *App) toggleWindow() domain.ActionResult {
+	a.windowActionMu.Lock()
+	defer a.windowActionMu.Unlock()
+	if a.mainWindow == nil {
+		return domain.ActionResult{OK: false, Status: "missing", Message: "Wails window is not ready."}
+	}
+	if a.mainWindow.IsVisible() {
+		return a.hideWindowLocked()
+	}
+	return a.showWindowLocked()
+}
+
 // hideWindowLocked 在持锁状态下隐藏主窗口
 func (a *App) hideWindowLocked() domain.ActionResult {
 	if a.mainWindow == nil {
@@ -41,6 +55,7 @@ func (a *App) hideWindowLocked() domain.ActionResult {
 	}
 	a.rememberMainWindowSize()
 	a.mainWindow.Hide()
+	a.applyDockPreferenceForWindowState(a.config.Preferences().ShowDockIcon, false)
 	return domain.ActionResult{OK: true, Status: "hidden", Message: "Window hidden."}
 }
 

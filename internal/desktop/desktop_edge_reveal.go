@@ -5,7 +5,6 @@ import "time"
 const (
 	edgeRevealInterval     = 100 * time.Millisecond
 	edgeRevealHoldDuration = time.Second
-	edgeHideDelay          = time.Second
 	edgeRevealCooldown     = 650 * time.Millisecond
 )
 
@@ -40,24 +39,9 @@ func (a *App) watchLeftEdgeReveal(stop <-chan struct{}) {
 	defer ticker.Stop()
 	lastReveal := time.Time{}
 	var candidate edgeRevealCandidate
-	var outsideSince time.Time
 	for {
 		select {
 		case <-ticker.C:
-			if a.shouldHideOutsideMainWindow() {
-				if outsideSince.IsZero() {
-					outsideSince = time.Now()
-					continue
-				}
-				if time.Since(outsideSince) >= edgeHideDelay {
-					_ = a.HideWindow()
-					outsideSince = time.Time{}
-					candidate = edgeRevealCandidate{}
-				}
-				continue
-			}
-			outsideSince = time.Time{}
-
 			if time.Since(lastReveal) < edgeRevealCooldown {
 				continue
 			}
@@ -90,19 +74,6 @@ type edgeRevealCandidate struct {
 	since time.Time
 }
 
-// shouldHideOutsideMainWindow 判断主窗口失焦后是否需要自动隐藏
-func (a *App) shouldHideOutsideMainWindow() bool {
-	if a.mainWindow == nil || !a.mainWindow.IsVisible() || !a.config.Preferences().AutohideOnBlur || a.settingsWindowIsVisible() {
-		return false
-	}
-	x, y, ok := cursorPosition()
-	if !ok {
-		return false
-	}
-	left, top, width, height, ok := a.mainWindowBounds()
-	return ok && !pointInRect(x, y, left, top, width, height)
-}
-
 // leftEdgeCursorPosition 返回位于屏幕左边缘的鼠标坐标
 func (a *App) leftEdgeCursorPosition() (int, int, bool) {
 	if a.mainWindow == nil || a.mainWindow.IsVisible() {
@@ -128,24 +99,6 @@ func cursorAtExactLeftEdge(x int, y int, left int, top int, height int, hasScree
 		return false
 	}
 	return x == left
-}
-
-// mainWindowBounds 返回主窗口边界
-func (a *App) mainWindowBounds() (left int, top int, width int, height int, ok bool) {
-	if a.mainWindow == nil {
-		return 0, 0, 0, 0, false
-	}
-	left, top = a.mainWindow.Position()
-	width, height = a.mainWindow.Size()
-	return left, top, width, height, width > 0 && height > 0
-}
-
-// pointInRect 判断坐标是否位于矩形内
-func pointInRect(x int, y int, left int, top int, width int, height int) bool {
-	if width <= 0 || height <= 0 {
-		return false
-	}
-	return x >= left && x < left+width && y >= top && y < top+height
 }
 
 // primaryScreenEdge 返回主屏幕左边缘位置

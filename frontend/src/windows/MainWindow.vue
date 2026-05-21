@@ -21,6 +21,7 @@ defineProps<{
   enabledHarnesses: Harness[]
   displayedSessions: Session[]
   selectedSessionId: string
+  isAllProjectsSelected: boolean
   projectName: (project: Project) => string
   basename: (path: string) => string
   harnessName: (id: string) => string
@@ -66,7 +67,10 @@ const emit = defineEmits<{
 
   <SessionList
     :sessions="displayedSessions"
+    :projects="projects"
     :selected-session-id="selectedSessionId"
+    :group-by-project="isAllProjectsSelected"
+    :project-name="projectName"
     :harness-name="harnessName"
     :terminal-name="terminalName"
     @focus="emit('focus-session', $event)"

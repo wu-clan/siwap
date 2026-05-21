@@ -2,10 +2,12 @@ package desktop
 
 import (
 	"context"
+	"runtime"
 	"sync"
 	"sync/atomic"
 
 	"github.com/wailsapp/wails/v3/pkg/application"
+	"github.com/wailsapp/wails/v3/pkg/services/dock"
 	"golang.design/x/hotkey"
 
 	"siwap/internal/config"
@@ -36,8 +38,10 @@ type App struct {
 	settingsTab    string
 	windowMu       sync.Mutex
 	desktop        *application.App
+	dockService    *dock.DockService
 	mainWindow     application.Window
 	settingsWindow application.Window
+	statusItem     *application.SystemTray
 	hotkeyMu       sync.Mutex
 	hotkey         *hotkey.Hotkey
 	hotkeyStop     chan struct{}
@@ -69,6 +73,13 @@ func (a *App) attachDesktop(desktop *application.App, mainWindow application.Win
 	a.mainWindow = mainWindow
 }
 
+// attachDockService 绑定 Dock 服务，用于在 macOS 上切换 Dock 图标显示状态
+func (a *App) attachDockService(dockService *dock.DockService) {
+	a.windowMu.Lock()
+	defer a.windowMu.Unlock()
+	a.dockService = dockService
+}
+
 // ServiceStartup 在 Wails 服务启动时初始化运行上下文
 func (a *App) ServiceStartup(ctx context.Context, _ application.ServiceOptions) error {
 	a.ctx, a.cancel = context.WithCancel(ctx)
@@ -90,6 +101,7 @@ func (a *App) ServiceShutdown() error {
 func (a *App) GetBootstrap() domain.Bootstrap {
 	return domain.Bootstrap{
 		Version:          Version,
+		Platform:         runtime.GOOS,
 		Summary:          a.config.Summary,
 		ConfigPath:       a.config.ConfigPath(),
 		Preferences:      a.config.Preferences(),
@@ -97,7 +109,8 @@ func (a *App) GetBootstrap() domain.Bootstrap {
 		Projects:         a.projects.List(),
 		TerminalProfiles: a.config.ListTerminalProfiles(),
 		Adapters:         a.currentAdapters(),
-		Sessions:         a.sessions.List(),
+		Sessions:         a.listSessions(),
+		Worktrees:        a.listAllWorktrees(),
 	}
 }
 

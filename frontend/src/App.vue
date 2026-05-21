@@ -5,8 +5,8 @@ import {
   GetBootstrap,
   GetInitialSettingsSection,
   GetWindowRole,
+  ListAllWorktrees,
   ListWorktreeBranches,
-  ListWorktrees,
   OpenSettingsSection,
   ResetSidebarWindow,
 } from '../bindings/siwap/internal/desktop/app'
@@ -26,6 +26,7 @@ import type {
   TerminalAdapter,
   TerminalProfile,
   Worktree,
+  WorktreeBranchState,
 } from './domain/types'
 import {
   emptyProfile,
@@ -65,6 +66,7 @@ const worktreePathDraft = ref('')
 const worktreeCreateOpen = ref(false)
 const terminalProfileOpen = ref(false)
 const profileDraft = ref<TerminalProfile>(emptyProfile())
+const platform = ref('')
 const confirmDialog = ref({ open: false, description: '', title: '', confirmLabel: '' })
 
 const { t } = useI18n({ useScope: 'global' })
@@ -139,54 +141,58 @@ function resolveConfirm(value: boolean) {
 async function refreshBootstrap() {
   const data = await run('action.refresh', () => GetBootstrap() as unknown as Promise<Bootstrap>)
   if (!data) return
+  platform.value = data.platform || ''
   preferences.value = normalizePreferences(data.preferences)
   projects.value = data.projects ?? []
   harnesses.value = (data.harnesses ?? []).map(normalizeHarness)
   terminalProfiles.value = data.terminalProfiles ?? []
   adapters.value = data.adapters ?? []
   sessions.value = data.sessions ?? []
+  worktrees.value = data.worktrees ?? []
   if (!preferences.value.selectedProjectId)
     preferences.value.selectedProjectId = ALL_PROJECTS_SCOPE_ID
   if (!preferences.value.defaultAdapterId) preferences.value.defaultAdapterId = 'auto'
-  await refreshWorktrees()
   await refreshWorktreeBranches()
   preserveSessionSelection()
 }
 
+// refreshWorktrees 仅在缺少事件载荷时兜底调用，常规同步以后端推送为准
 async function refreshWorktrees() {
   if (projects.value.length === 0) {
     worktrees.value = []
     selectedWorktreePath.value = ''
     return
   }
-  const lists = await Promise.all(
-    projects.value.map(async (project) => {
-      try {
-        return (await ListWorktrees(project.id)) as unknown as Worktree[]
-      } catch {
-        return []
-      }
-    }),
-  )
-  worktrees.value = lists.flat()
-  if (
-    selectedWorktreePath.value &&
-    !currentWorktrees.value.some((item) => item.path === selectedWorktreePath.value)
-  ) {
-    selectedWorktreePath.value = ''
-  }
+  worktrees.value = (await ListAllWorktrees()) as unknown as Worktree[]
+  reconcileSelectedWorktree()
 }
 
+// syncWorktreeList 使用 Go 侧聚合后的列表作为唯一来源，避免前端自行按项目做 IO
+function syncWorktreeList(next: Worktree[]) {
+  worktrees.value = next || []
+  reconcileSelectedWorktree()
+}
+
+// reconcileSelectedWorktree 清理已被删除或已切换项目后不可见的 worktree 选择
+function reconcileSelectedWorktree() {
+  if (!selectedWorktreePath.value) return
+  if (currentWorktrees.value.some((item) => item.path === selectedWorktreePath.value)) return
+  selectedWorktreePath.value = ''
+}
+
+// refreshWorktreeBranches 读取 Go 侧过滤后的分支状态和默认基准分支
 async function refreshWorktreeBranches() {
   if (!settingsWorktreeProjectId.value) {
     worktreeBranches.value = []
     baseBranchDraft.value = ''
     return
   }
-  worktreeBranches.value = await listWorktreeBranches(settingsWorktreeProjectId.value)
-  baseBranchDraft.value = defaultBaseBranch(worktreeBranches.value)
+  const state = await listWorktreeBranches(settingsWorktreeProjectId.value)
+  worktreeBranches.value = state.branches
+  baseBranchDraft.value = state.defaultBaseBranch
 }
 
+// syncProjects 同步项目事件，并在当前设置项目失效时回到未选状态
 async function syncProjects(next: Project[]) {
   projects.value = next || []
   if (
@@ -200,38 +206,28 @@ async function syncProjects(next: Project[]) {
   preserveSessionSelection()
 }
 
-async function syncWorktrees() {
-  await refreshWorktrees()
-  await refreshWorktreeBranches()
+// syncWorktrees 优先消费事件载荷；只有旧事件或兜底场景才重新请求 Go 聚合列表
+async function syncWorktrees(next?: Worktree[], refreshBranches = false) {
+  if (next) syncWorktreeList(next)
+  else await refreshWorktrees()
+  if (refreshBranches) await refreshWorktreeBranches()
   preserveSessionSelection()
 }
 
+// syncSessions 使用后端已补齐项目名的会话列表刷新选择状态
 function syncSessions(next: Session[]) {
   sessions.value = next || []
   preserveSessionSelection()
 }
 
+// listWorktreeBranches 返回后端准备好的创建 worktree 分支状态
 async function listWorktreeBranches(projectId: string) {
-  if (!projectId) return []
+  if (!projectId) return { projectId: '', branches: [], defaultBaseBranch: '' }
   try {
-    const branches = (await ListWorktreeBranches(projectId)) as unknown as string[]
-    return branches.filter((branch) => !isOriginBranch(branch))
+    return (await ListWorktreeBranches(projectId)) as unknown as WorktreeBranchState
   } catch {
-    return []
+    return { projectId, branches: [], defaultBaseBranch: '' }
   }
-}
-
-function isOriginBranch(branch: string) {
-  return branch === 'origin' || branch.startsWith('origin/') || branch.startsWith('remotes/origin/')
-}
-
-function defaultBaseBranch(branches: string[]) {
-  return (
-    branches.find((branch) => branch === 'main') ??
-    branches.find((branch) => branch === 'master') ??
-    branches[0] ??
-    ''
-  )
 }
 
 async function changeSettingsWorktreeProject(projectId: string) {
@@ -266,7 +262,6 @@ const {
   run,
   t,
   savePreferences,
-  refreshBootstrap,
   terminalDisplayName,
   confirm: confirmAction,
 })
@@ -285,8 +280,6 @@ const { chooseProjectDirectory, selectProject, setDefaultProject, removeProject,
     settingsSection,
     run,
     t,
-    refreshBootstrap,
-    refreshWorktrees,
     preserveSessionSelection: () => preserveSessionSelection(),
     openSettings,
     projectName,
@@ -305,8 +298,8 @@ const { openWorktreeCreate, closeWorktreeCreate, createWorktree, deleteWorktree 
     actionMessage,
     run,
     t,
-    refreshWorktrees,
     refreshWorktreeBranches,
+    syncWorktrees,
     canCreateWorktree,
     confirm: confirmAction,
   })
@@ -350,13 +343,13 @@ async function openWorktreeCreateFromMain() {
     return
   }
   const branches = await listWorktreeBranches(selectedProjectId.value)
-  if (branches.length === 0) {
+  if (branches.branches.length === 0) {
     actionMessage.value = t('worktree.gitRequired')
     return
   }
   settingsWorktreeProjectId.value = selectedProjectId.value
-  worktreeBranches.value = branches
-  baseBranchDraft.value = defaultBaseBranch(branches)
+  worktreeBranches.value = branches.branches
+  baseBranchDraft.value = branches.defaultBaseBranch
   if (isSettingsWindow.value || !hasWailsRuntime()) {
     settingsSection.value = 'worktrees'
     settingsOpen.value = true
@@ -455,17 +448,17 @@ onMounted(() => {
     offSessions = Events.On('sessions:updated', (event) => {
       syncSessions((event.data as Session[]) || [])
     })
-    offWorktrees = Events.On('worktrees:updated', () => {
-      void syncWorktrees()
+    offWorktrees = Events.On('worktrees:updated', (event) => {
+      const next = event.data
+      void (Array.isArray(next) ? syncWorktrees(next as Worktree[]) : syncWorktrees())
     })
   }
 })
 
 watch(
   () => selectedProjectId.value,
-  async () => {
+  () => {
     selectedWorktreePath.value = ''
-    await refreshWorktrees()
     preserveSessionSelection()
   },
 )
@@ -506,6 +499,7 @@ onBeforeUnmount(() => {
       :enabled-harnesses="enabledHarnesses"
       :displayed-sessions="displayedSessions"
       :selected-session-id="selectedSessionId"
+      :is-all-projects-selected="isAllProjectsSelected"
       :project-name="projectName"
       :basename="basename"
       :harness-name="harnessName"
@@ -528,6 +522,7 @@ onBeforeUnmount(() => {
       :settings-section="settingsSection"
       :settings-sections="settingsSections"
       :preferences="preferences"
+      :platform="platform"
       :projects="projects"
       :all-worktrees="worktrees"
       :settings-worktree-project-id="settingsWorktreeProjectId"

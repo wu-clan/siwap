@@ -21,7 +21,6 @@ export function useTerminalActions(options: {
   run: Run
   t: Translate
   savePreferences: () => Promise<void>
-  refreshBootstrap: () => Promise<void>
   terminalDisplayName: (path: string) => string
   confirm: Confirm
 }) {
@@ -33,7 +32,6 @@ export function useTerminalActions(options: {
     run,
     t,
     savePreferences,
-    refreshBootstrap,
     terminalDisplayName,
     confirm,
   } = options
@@ -50,7 +48,6 @@ export function useTerminalActions(options: {
     if (!enabled && preferences.value.defaultAdapterId === id)
       preferences.value.defaultAdapterId = 'auto'
     await savePreferences()
-    await refreshBootstrap()
   }
 
   function updateProfileField(
@@ -93,13 +90,11 @@ export function useTerminalActions(options: {
     )
     if (!updated) return
     closeTerminalProfile()
-    await refreshBootstrap()
   }
 
   async function removeProfile(id: string) {
     if (!(await confirm(t('confirm.removeTerminalProfile')))) return
     await run('action.removeTerminal', () => RemoveTerminalProfile(id))
-    await refreshBootstrap()
   }
 
   async function reorderTerminals(ids: string[]) {

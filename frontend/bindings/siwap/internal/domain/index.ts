@@ -10,10 +10,13 @@ export {
     Preferences,
     Project,
     Session,
+    SessionActionResult,
     TerminalAdapter,
     TerminalCapability,
     TerminalProfile,
     TerminalSessionRef,
     WindowState,
-    Worktree
+    Worktree,
+    WorktreeActionResult,
+    WorktreeBranchState
 } from "./models.js";

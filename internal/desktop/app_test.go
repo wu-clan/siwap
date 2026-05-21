@@ -4,6 +4,8 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/wailsapp/wails/v3/pkg/application"
+
 	"siwap/internal/domain"
 	"siwap/internal/session"
 )
@@ -80,35 +82,6 @@ func TestCursorAtExactLeftEdge(t *testing.T) {
 	}
 }
 
-// TestPointInRect 验证对应功能行为
-func TestPointInRect(t *testing.T) {
-	tests := []struct {
-		name   string
-		x      int
-		y      int
-		left   int
-		top    int
-		width  int
-		height int
-		want   bool
-	}{
-		{name: "inside", x: 10, y: 10, left: 0, top: 0, width: 320, height: 900, want: true},
-		{name: "left edge included", x: 0, y: 10, left: 0, top: 0, width: 320, height: 900, want: true},
-		{name: "right edge excluded", x: 320, y: 10, left: 0, top: 0, width: 320, height: 900, want: false},
-		{name: "bottom edge excluded", x: 10, y: 900, left: 0, top: 0, width: 320, height: 900, want: false},
-		{name: "outside", x: -1, y: 10, left: 0, top: 0, width: 320, height: 900, want: false},
-		{name: "invalid size", x: 0, y: 0, left: 0, top: 0, width: 0, height: 900, want: false},
-	}
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got := pointInRect(tt.x, tt.y, tt.left, tt.top, tt.width, tt.height)
-			if got != tt.want {
-				t.Fatalf("pointInRect() = %v, want %v", got, tt.want)
-			}
-		})
-	}
-}
-
 // TestParseShortcut 验证对应功能行为
 func TestParseShortcut(t *testing.T) {
 	mods, key, ok := parseShortcut("Control+Command+S")
@@ -153,8 +126,18 @@ func TestNilWindowActionsDoNotPanic(t *testing.T) {
 	if result := app.HideWindow(); result.OK || result.Status != "missing" {
 		t.Fatalf("HideWindow without Wails window = %+v", result)
 	}
+	if result := app.toggleWindow(); result.OK || result.Status != "missing" {
+		t.Fatalf("ToggleWindow without Wails window = %+v", result)
+	}
 	if app.settingsWindowIsVisible() {
 		t.Fatal("nil settings window should not be visible")
+	}
+}
+
+// TestDockActivationPolicyStartsRegular 验证启动主窗口时使用普通应用策略
+func TestDockActivationPolicyStartsRegular(t *testing.T) {
+	if dockActivationPolicy() != application.ActivationPolicyRegular {
+		t.Fatal("main window should start with regular activation policy")
 	}
 }
 
@@ -237,6 +220,32 @@ func TestShouldReopenMissingTerminalSkipsUnsupportedAdapters(t *testing.T) {
 	terminalApp := domain.Session{AdapterID: "terminal-app", Ref: domain.TerminalSessionRef{WindowID: "42"}}
 	if !shouldReopenMissingTerminal(terminalApp, "missing") {
 		t.Fatal("missing managed Terminal.app window should reopen")
+	}
+}
+
+// TestWithSessionProjectNamesUsesProjectLabels 验证会话项目展示名由 Go 侧补齐
+func TestWithSessionProjectNamesUsesProjectLabels(t *testing.T) {
+	t.Setenv("HOME", t.TempDir())
+	app := NewApp()
+	projectDir := t.TempDir()
+	project, err := app.projects.Add(projectDir, "")
+	if err != nil {
+		t.Fatalf("Add returned error: %v", err)
+	}
+
+	sessions := app.withSessionProjectNames([]domain.Session{
+		{ID: "session-1", ProjectID: project.ID},
+		{ID: "session-2", ProjectID: "missing"},
+	})
+	wantName := projectDisplayName(domain.Project{Path: projectDir})
+	if sessions[0].ProjectName != wantName {
+		t.Fatalf("ProjectName = %q, want %q", sessions[0].ProjectName, wantName)
+	}
+	if sessions[1].ProjectName != "" {
+		t.Fatalf("missing project should not get a ProjectName, got %q", sessions[1].ProjectName)
+	}
+	if got := projectDisplayName(domain.Project{Path: projectDir, Label: " Custom Label "}); got != "Custom Label" {
+		t.Fatalf("projectDisplayName should prefer labels, got %q", got)
 	}
 }
 

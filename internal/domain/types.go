@@ -35,7 +35,7 @@ type Preferences struct {
 	LaunchInBackground      bool     `json:"launchInBackground"`
 	WorktreeBaseDir         string   `json:"worktreeBaseDir"`
 	WorktreeLocation        string   `json:"worktreeLocation"`
-	AutohideOnBlur          bool     `json:"autohideOnBlur"`
+	ShowDockIcon            bool     `json:"showDockIcon"`
 	PanelWidth              int      `json:"panelWidth"`
 	WindowWidth             int      `json:"windowWidth"`
 	WindowHeight            int      `json:"windowHeight"`
@@ -135,6 +135,7 @@ type Session struct {
 	ID           string             `json:"id"`
 	HarnessID    string             `json:"harnessId"`
 	ProjectID    string             `json:"projectId,omitempty"`
+	ProjectName  string             `json:"projectName,omitempty"`
 	AdapterID    string             `json:"adapterId"`
 	Title        string             `json:"title"`
 	Command      string             `json:"command"`
@@ -174,6 +175,27 @@ type ActionResult struct {
 	Message string `json:"message"`
 }
 
+// SessionActionResult 返回会话动作结果和最新会话列表，避免前端再发起刷新请求
+type SessionActionResult struct {
+	Action   ActionResult `json:"action"`
+	Session  Session      `json:"session"`
+	Sessions []Session    `json:"sessions"`
+}
+
+// WorktreeActionResult 返回 worktree 动作结果和最新 worktree 列表，避免前端再发起刷新请求
+type WorktreeActionResult struct {
+	Action    ActionResult `json:"action"`
+	Worktree  Worktree     `json:"worktree"`
+	Worktrees []Worktree   `json:"worktrees"`
+}
+
+// WorktreeBranchState 返回创建 worktree 所需的分支状态
+type WorktreeBranchState struct {
+	ProjectID         string   `json:"projectId"`
+	Branches          []string `json:"branches"`
+	DefaultBaseBranch string   `json:"defaultBaseBranch"`
+}
+
 // WindowState 表示桌面窗口状态
 type WindowState struct {
 	Width       int    `json:"width"`
@@ -185,6 +207,7 @@ type WindowState struct {
 // Bootstrap 表示前端启动时需要的一次性数据
 type Bootstrap struct {
 	Version          string            `json:"version"`
+	Platform         string            `json:"platform"`
 	Summary          AppSummary        `json:"summary"`
 	ConfigPath       string            `json:"configPath"`
 	Preferences      Preferences       `json:"preferences"`
@@ -193,4 +216,5 @@ type Bootstrap struct {
 	TerminalProfiles []TerminalProfile `json:"terminalProfiles"`
 	Adapters         []TerminalAdapter `json:"adapters"`
 	Sessions         []Session         `json:"sessions"`
+	Worktrees        []Worktree        `json:"worktrees"`
 }

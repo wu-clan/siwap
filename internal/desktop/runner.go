@@ -5,6 +5,7 @@ import (
 
 	"github.com/wailsapp/wails/v3/pkg/application"
 	"github.com/wailsapp/wails/v3/pkg/events"
+	"github.com/wailsapp/wails/v3/pkg/services/dock"
 )
 
 // Run 创建并运行 Wails 桌面应用
@@ -12,6 +13,8 @@ func Run(assets embed.FS) error {
 	service := NewApp()
 	prefs := service.config.Preferences()
 	windowWidth := positivePanelWidth(prefs.PanelWidth)
+	dockService := dock.New()
+	service.attachDockService(dockService)
 
 	desktop := application.New(application.Options{
 		Name:        "Siwap",
@@ -24,6 +27,7 @@ func Run(assets embed.FS) error {
 		},
 		Mac: application.MacOptions{
 			ApplicationShouldTerminateAfterLastWindowClosed: false,
+			ActivationPolicy: dockActivationPolicy(),
 		},
 		SingleInstance: &application.SingleInstanceOptions{
 			UniqueID:               "siwap-main",
@@ -62,9 +66,11 @@ func Run(assets embed.FS) error {
 	}
 	mainWindow := desktop.Window.NewWithOptions(windowOpts)
 	service.attachDesktop(desktop, mainWindow)
+	service.ensureStatusItem()
 
 	mainWindow.RegisterHook(events.Common.WindowRuntimeReady, func(*application.WindowEvent) {
 		service.applyTheme(service.config.Preferences().Appearance)
+		service.showDockForForegroundWindow()
 		service.registerShortcut(service.config.Preferences().GlobalShortcut)
 		service.startEdgeRevealWatcher()
 	})

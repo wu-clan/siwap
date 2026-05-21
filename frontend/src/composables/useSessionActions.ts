@@ -4,15 +4,14 @@ import {
   CloseSession,
   FocusSession,
   LaunchSession,
-  ListSessions,
 } from '../../bindings/siwap/internal/desktop/app'
 import type {
-  ActionResult,
   Harness,
   LaunchRequest,
   Preferences,
   Project,
   Session,
+  SessionActionResult,
 } from '../domain/types'
 import type { SettingsSection } from '../domain/settings'
 
@@ -78,14 +77,15 @@ export function useSessionActions(options: {
     try {
       const created = await run(
         launchAssistantLabel(harness.label),
-        () => LaunchSession(request as never) as unknown as Promise<Session>,
+        () => LaunchSession(request as never) as unknown as Promise<SessionActionResult>,
       )
       if (!created) return
       // 以后端会话列表为准，失败的启动也会保留在列表中便于查看错误和重试
-      sessions.value = (await ListSessions()) as unknown as Session[]
-      selectedSessionId.value = created.id
-      if (created.status === 'failed')
-        actionMessage.value = created.error || t('session.launchFailedKept')
+      sessions.value = created.sessions ?? []
+      selectedSessionId.value = created.session.id
+      if (created.session.status === 'failed')
+        actionMessage.value =
+          created.session.error || created.action.message || t('session.launchFailedKept')
     } finally {
       launchKeys.delete(launchKey)
     }
@@ -98,11 +98,11 @@ export function useSessionActions(options: {
     try {
       const result = await run(
         'action.focusSession',
-        () => FocusSession(id) as unknown as Promise<ActionResult>,
+        () => FocusSession(id) as unknown as Promise<SessionActionResult>,
       )
-      if (result) actionMessage.value = result.message
+      if (result) actionMessage.value = result.action.message
       // 聚焦可能触发终端重开，因此刷新后端状态而不是直接改本地对象
-      sessions.value = (await ListSessions()) as unknown as Session[]
+      if (result) sessions.value = result.sessions ?? []
       preserveSessionSelection()
     } finally {
       focusIds.delete(id)
@@ -112,20 +112,24 @@ export function useSessionActions(options: {
   async function closeSession(id: string) {
     const result = await run(
       'session.closeSession',
-      () => CloseSession(id) as unknown as Promise<ActionResult>,
+      () => CloseSession(id) as unknown as Promise<SessionActionResult>,
     )
-    if (result) actionMessage.value = result.message
-    sessions.value = (await ListSessions()) as unknown as Session[]
+    if (result) {
+      actionMessage.value = result.action.message
+      sessions.value = result.sessions ?? []
+    }
     preserveSessionSelection()
   }
 
   async function clearSessions() {
     const result = await run(
       'action.clearAllSessions',
-      () => ClearSessions() as unknown as Promise<ActionResult>,
+      () => ClearSessions() as unknown as Promise<SessionActionResult>,
     )
-    if (result) actionMessage.value = result.message
-    sessions.value = (await ListSessions()) as unknown as Session[]
+    if (result) {
+      actionMessage.value = result.action.message
+      sessions.value = result.sessions ?? []
+    }
     preserveSessionSelection()
   }
 

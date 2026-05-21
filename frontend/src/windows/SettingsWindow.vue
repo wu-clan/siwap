@@ -21,6 +21,7 @@ defineProps<{
   settingsSection: SettingsSection
   settingsSections: readonly SettingsSectionItem[]
   preferences: Preferences
+  platform: string
   projects: Project[]
   allWorktrees: Worktree[]
   settingsWorktreeProjectId: string
@@ -89,6 +90,7 @@ const emit = defineEmits<{
     <GeneralSettings
       v-if="settingsSection === 'general'"
       :preferences="preferences"
+      :platform="platform"
       @change-preference="(key, value) => emit('change-preference', key, value)"
       @toggle-always-on-top="emit('toggle-always-on-top')"
       @reset-window="emit('reset-window')"

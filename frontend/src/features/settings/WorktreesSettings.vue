@@ -47,16 +47,8 @@ const emit = defineEmits<{
 const { t } = useI18n({ useScope: 'global' })
 
 const worktreeSchema = computed(() => toTypedSchema(createWorktreeFormSchema(t)))
-const baseBranchOptions = computed(() =>
-  props.worktreeBranches.filter((branch) => !isOriginBranch(branch)),
-)
-const defaultBaseBranch = computed(
-  () =>
-    baseBranchOptions.value.find((branch) => branch === 'main') ??
-    baseBranchOptions.value.find((branch) => branch === 'master') ??
-    baseBranchOptions.value[0] ??
-    '',
-)
+const baseBranchOptions = computed(() => props.worktreeBranches)
+const defaultBaseBranch = computed(() => props.baseBranchDraft || baseBranchOptions.value[0] || '')
 const worktreeForm = useForm<WorktreeFormValues>({
   validationSchema: worktreeSchema,
   initialValues: {
@@ -84,10 +76,6 @@ const filteredWorktrees = computed(() => {
   if (!props.settingsWorktreeProjectId) return props.allWorktrees
   return props.allWorktrees.filter((w) => w.projectId === props.settingsWorktreeProjectId)
 })
-
-function isOriginBranch(branch: string) {
-  return branch === 'origin' || branch.startsWith('origin/') || branch.startsWith('remotes/origin/')
-}
 
 watch(defaultBaseBranch, (branch) => {
   if (!props.worktreeCreateOpen || !branch) return

@@ -16,7 +16,7 @@ export const fallbackPreferences: Preferences = {
   launchInBackground: false,
   worktreeBaseDir: '',
   worktreeLocation: 'project-parent',
-  autohideOnBlur: true,
+  showDockIcon: false,
   panelWidth: 0,
   windowWidth: 320,
   windowHeight: 900,
