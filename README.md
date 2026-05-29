@@ -4,6 +4,8 @@
 
 Siwap is a desktop launcher for project-based AI assistant sessions. It stays as a compact left-side sidebar, lets you choose a project, Git worktree, terminal, and AI assistant, then opens the session in your preferred terminal.
 
+![Siwap demo](siwap.gif)
+
 ## Features
 
 - Project and Git worktree context switching
